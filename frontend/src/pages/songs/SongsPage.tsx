@@ -1,0 +1,37 @@
+
+import { useEffect, useState } from "react";
+import { useMusicStore } from "@/stores/useMusicStore";
+import SectionGrid from "../home/components/SectionGrid";
+
+const SongsPage = () => {
+    const { songs, fetchSongs, isLoading } = useMusicStore();
+    const [search, setSearch] = useState("");
+
+    useEffect(() => {
+        fetchSongs();
+    }, [fetchSongs]);
+
+    const filteredSongs = songs.filter(
+        (s) =>
+            s.title.toLowerCase().includes(search.toLowerCase()) ||
+            s.artist.toLowerCase().includes(search.toLowerCase())
+    );
+
+    return (
+        <div className="p-2 sm:p-4">
+            <h1 className="text-2xl font-bold mb-4">All Songs</h1>
+            <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center">
+                <input
+                    type="text"
+                    placeholder="Search songs or artists..."
+                    className="w-full sm:w-96 px-3 py-2 rounded bg-zinc-800 border border-zinc-700 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                />
+            </div>
+            <SectionGrid songs={filteredSongs} title="Songs" isLoading={isLoading} showAll={false} />
+        </div>
+    );
+};
+
+export default SongsPage;
