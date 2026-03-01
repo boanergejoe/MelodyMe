@@ -3,6 +3,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useMusicStore } from "@/stores/useMusicStore";
+import { useChatStore } from "@/stores/useChatStore";
 import { SignedIn } from "@clerk/clerk-react";
 import { HomeIcon, Library, MessageCircle } from "lucide-react";
 import { useEffect } from "react";
@@ -10,6 +11,10 @@ import { Link } from "react-router-dom";
 
 const LeftSidebar = () => {
 	const { albums, fetchAlbums, isLoading } = useMusicStore();
+	const { unreadCounts } = useChatStore();
+	let totalUnread = Array.from(unreadCounts.values()).reduce((sum, v) => sum + v, 0);
+	if (totalUnread > 99) totalUnread = 99; // cap for display
+
 
 	useEffect(() => {
 		fetchAlbums();
@@ -24,7 +29,7 @@ const LeftSidebar = () => {
 			<div className='rounded-lg bg-zinc-900 p-4'>
 				<div className='space-y-2'>
 					<Link
-						to={"/"}
+						to="/"
 						className={cn(
 							buttonVariants({
 								variant: "ghost",
@@ -38,16 +43,21 @@ const LeftSidebar = () => {
 
 					<SignedIn>
 						<Link
-							to={"/chat"}
+							to="/chat"
 							className={cn(
 								buttonVariants({
 									variant: "ghost",
-									className: "w-full justify-start text-white hover:bg-zinc-800",
+									className: "w-full justify-start text-white hover:bg-zinc-800 relative",
 								})
 							)}
 						>
 							<MessageCircle className='mr-2 size-5' />
 							<span className='hidden md:inline'>Messages</span>
+							{totalUnread > 0 && (
+								<span className='absolute top-0 right-0 -mt-1 -mr-2 inline-flex items-center justify-center bg-red-500 text-white text-[10px] sm:text-xs font-semibold rounded-full w-4 sm:w-5 h-4 sm:h-5'>
+									{totalUnread}
+								</span>
+							)}
 						</Link>
 					</SignedIn>
 				</div>

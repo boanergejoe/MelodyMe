@@ -15,7 +15,7 @@ const Topbar = ({ search, setSearch }: { search: string; setSearch: (value: stri
 		>
 			<div className="flex gap-2 items-center">
 				<img src="/MelodyMe.png" className="size-8" alt="MelodyMe logo" />
-				MelodyMe
+				<span>MelodyMe</span>
 			</div>
 			<div className="flex-1 flex items-center justify-center">
 				<input

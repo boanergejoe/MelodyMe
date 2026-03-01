@@ -2,6 +2,7 @@ import Topbar from "@/components/Topbar";
 import { useChatStore } from "@/stores/useChatStore";
 import { useUser } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import UsersList from "./components/UsersList";
 import ChatHeader from "./components/ChatHeader";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,10 +16,9 @@ const formatTime = (date: string) => {
 		hour12: true,
 	});
 };
-
 const ChatPage = () => {
 	const { user } = useUser();
-	const { messages, selectedUser, fetchUsers, fetchMessages } = useChatStore();
+	const { messages, selectedUser, fetchUsers, fetchMessages, users } = useChatStore();
 	const [search, setSearch] = useState("");
 
 	useEffect(() => {
@@ -28,6 +28,21 @@ const ChatPage = () => {
 	useEffect(() => {
 		if (selectedUser) fetchMessages(selectedUser.clerkId);
 	}, [selectedUser, fetchMessages]);
+
+	// show toast when a new incoming message arrives (even for active conversation)
+	useEffect(() => {
+		if (!user) return;
+		if (messages.length === 0) return;
+		const last = messages.at(-1);
+		if (!last) return;
+		// only consider messages not sent by current user
+		if (last.senderId !== user.id) {
+			const sender = users.find((u) => u.clerkId === last.senderId);
+			const senderName = sender?.fullName || "someone";
+			const isActive = selectedUser?.clerkId === last.senderId;
+			toast(`New message from ${senderName}${isActive ? "" : " ( reply)"}`);
+		}
+	}, [messages, user, users, selectedUser]);
 
 	console.log({ messages });
 

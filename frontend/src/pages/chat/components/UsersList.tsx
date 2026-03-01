@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChatStore } from "@/stores/useChatStore";
 
 const UsersList = () => {
-	const { users, selectedUser, isLoading, setSelectedUser, onlineUsers } = useChatStore();
+	const { users, selectedUser, isLoading, setSelectedUser, onlineUsers, unreadCounts } = useChatStore();
 
 	return (
 		<div className='border-r border-zinc-800'>
@@ -15,12 +15,12 @@ const UsersList = () => {
 							<UsersListSkeleton />
 						) : (
 							users.map((user) => (
-								<div
+								<button
 									key={user._id}
 									onClick={() => setSelectedUser(user)}
 									className={`flex items-center justify-center lg:justify-start gap-3 p-3
-										rounded-lg cursor-pointer transition-colors
-                    ${selectedUser?.clerkId === user.clerkId ? "bg-zinc-800" : "hover:bg-zinc-800/50"}`}
+										rounded-lg cursor-pointer transition-colors w-full text-left
+					${selectedUser?.clerkId === user.clerkId ? "bg-zinc-800" : "hover:bg-zinc-800/50"}`}
 								>
 									<div className='relative'>
 										<Avatar className='size-8 md:size-12'>
@@ -37,7 +37,12 @@ const UsersList = () => {
 									<div className='flex-1 min-w-0 lg:block hidden'>
 										<span className='font-medium truncate'>{user.fullName}</span>
 									</div>
-								</div>
+									{unreadCounts.get(user.clerkId) ? (
+										<span className='ml-auto text-xs bg-red-500 text-white rounded-full px-2'>
+											{unreadCounts.get(user.clerkId)}
+										</span>
+									) : null}
+								</button>
 							))
 						)}
 					</div>

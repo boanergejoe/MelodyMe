@@ -90,9 +90,15 @@ const AddAlbumDialog = () => {
 						accept='image/*'
 						className='hidden'
 					/>
-					<div
-						className='flex items-center justify-center p-6 border-2 border-dashed border-zinc-700 rounded-lg cursor-pointer'
+					<button
+						type='button'
 						onClick={() => fileInputRef.current?.click()}
+						onKeyDown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') {
+								fileInputRef.current?.click();
+							}
+						}}
+						className='flex items-center justify-center p-6 border-2 border-dashed border-zinc-700 rounded-lg cursor-pointer hover:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-zinc-900 w-full'
 					>
 						<div className='text-center'>
 							<div className='p-3 bg-zinc-800 rounded-full inline-block mb-2'>
@@ -105,10 +111,11 @@ const AddAlbumDialog = () => {
 								Choose File
 							</Button>
 						</div>
-					</div>
+					</button>
 					<div className='space-y-2'>
-						<label className='text-sm font-medium'>Album Title</label>
+						<label htmlFor='album-title' className='text-sm font-medium'>Album Title</label>
 						<Input
+							id='album-title'
 							value={newAlbum.title}
 							onChange={(e) => setNewAlbum({ ...newAlbum, title: e.target.value })}
 							className='bg-zinc-800 border-zinc-700'
@@ -116,8 +123,9 @@ const AddAlbumDialog = () => {
 						/>
 					</div>
 					<div className='space-y-2'>
-						<label className='text-sm font-medium'>Artist</label>
+						<label htmlFor='artist' className='text-sm font-medium'>Artist</label>
 						<Input
+							id='artist'
 							value={newAlbum.artist}
 							onChange={(e) => setNewAlbum({ ...newAlbum, artist: e.target.value })}
 							className='bg-zinc-800 border-zinc-700'
@@ -125,11 +133,12 @@ const AddAlbumDialog = () => {
 						/>
 					</div>
 					<div className='space-y-2'>
-						<label className='text-sm font-medium'>Release Year</label>
+						<label htmlFor='release-year' className='text-sm font-medium'>Release Year</label>
 						<Input
+							id='release-year'
 							type='number'
 							value={newAlbum.releaseYear}
-							onChange={(e) => setNewAlbum({ ...newAlbum, releaseYear: parseInt(e.target.value) })}
+							onChange={(e) => setNewAlbum({ ...newAlbum, releaseYear: Number.parseInt(e.target.value) })}
 							className='bg-zinc-800 border-zinc-700'
 							placeholder='Enter release year'
 							min={1900}

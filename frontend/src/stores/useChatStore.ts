@@ -13,6 +13,8 @@ interface ChatStore {
 	userActivities: Map<string, string>;
 	messages: Message[];
 	selectedUser: User | null;
+	// track unread messages per sender (clerkId)
+	unreadCounts: Map<string, number>;
 
 	fetchUsers: () => Promise<void>;
 	initSocket: (userId: string) => void;
@@ -20,6 +22,8 @@ interface ChatStore {
 	sendMessage: (receiverId: string, senderId: string, content: string) => void;
 	fetchMessages: (userId: string) => Promise<void>;
 	setSelectedUser: (user: User | null) => void;
+	incrementUnread: (userId: string) => void;
+	clearUnread: (userId: string) => void;
 }
 
 const baseURL = import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
@@ -39,8 +43,19 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 	userActivities: new Map(),
 	messages: [],
 	selectedUser: null,
+	unreadCounts: new Map(),
 
-	setSelectedUser: (user) => set({ selectedUser: user }),
+	// selecting a user clears its unread count
+	setSelectedUser: (user) => {
+		set({ selectedUser: user });
+		if (user) {
+			set((state) => {
+				const newMap = new Map(state.unreadCounts);
+				newMap.delete(user.clerkId);
+				return { unreadCounts: newMap };
+			});
+		}
+	},
 
 	fetchUsers: async () => {
 		set({ isLoading: true, error: null });
@@ -84,9 +99,18 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 			});
 
 			socket.on("receive_message", (message: Message) => {
-				set((state) => ({
-					messages: [...state.messages, message],
-				}));
+				set((state) => {
+					let newCounts = state.unreadCounts;
+					if (message.senderId !== state.selectedUser?.clerkId) {
+						const m = new Map(newCounts);
+						m.set(message.senderId, (m.get(message.senderId) || 0) + 1);
+						newCounts = m;
+					}
+					return {
+						messages: [...state.messages, message],
+						unreadCounts: newCounts,
+					};
+				});
 			});
 
 			socket.on("message_sent", (message: Message) => {
@@ -114,7 +138,21 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 		}
 	},
 
-	sendMessage: async (receiverId, senderId, content) => {
+	incrementUnread: (userId) =>
+		set((state) => {
+			const newMap = new Map(state.unreadCounts);
+			newMap.set(userId, (newMap.get(userId) || 0) + 1);
+			return { unreadCounts: newMap };
+		}),
+	clearUnread: (userId) =>
+		set((state) => {
+			const newMap = new Map(state.unreadCounts);
+			newMap.delete(userId);
+			return { unreadCounts: newMap };
+		}),
+
+
+	sendMessage: (receiverId, senderId, content) => {
 		const socket = get().socket;
 		if (!socket) return;
 
