@@ -6,7 +6,6 @@ import SignInOAuthButtons from "./SignInOAuthButtons";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "./ui/button";
-import { useState } from "react";
 
 const Topbar = ({ search, setSearch }: { search: string; setSearch: (value: string) => void }) => {
 	const { isAdmin } = useAuthStore();
