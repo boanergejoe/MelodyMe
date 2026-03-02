@@ -157,10 +157,10 @@ export const PlaybackControls = () => {
 
 				</DialogContent>
 			</Dialog>
-			<footer className='h-20 sm:h-24 bg-zinc-900 border-t border-zinc-800 px-4'>
+			<footer className='h-20 sm:h-24 bg-zinc-900 border-t border-zinc-800 px-2 sm:px-4'>
 				<div className='flex justify-between items-center h-full max-w-[1800px] mx-auto'>
-					{/* currently playing song */}
-					<div className='flex items-center gap-4 min-w-[120px] w-[30%]'>
+					{/* currently playing song (hidden on small screens to save space) */}
+					<div className='hidden sm:flex items-center gap-4 min-w-[120px] w-[30%]'>
 						{currentSong && (
 							<>
 								<img
@@ -202,7 +202,7 @@ export const PlaybackControls = () => {
 
 							<Button
 								size='icon'
-								className='bg-white hover:bg-white/80 text-black rounded-full h-8 w-8'
+								className='bg-white hover:bg-white/80 text-black rounded-full h-10 w-10 sm:h-8 sm:w-8'
 								onClick={togglePlay}
 								disabled={!currentSong}
 							>
@@ -229,7 +229,7 @@ export const PlaybackControls = () => {
 						</div>
 
 						<div className='flex items-center gap-2 w-full'>
-							<div className='text-xs text-zinc-400'>{formatTime(currentTime)}</div>
+							<div className='text-xs text-zinc-400 hidden sm:block'>{formatTime(currentTime)}</div>
 							<Slider
 								value={[currentTime]}
 								max={duration || 100}
@@ -237,11 +237,11 @@ export const PlaybackControls = () => {
 								className='w-full hover:cursor-grab active:cursor-grabbing'
 								onValueChange={handleSeek}
 							/>
-							<div className='text-xs text-zinc-400'>{formatTime(duration)}</div>
+							<div className='text-xs text-zinc-400 hidden sm:block'>{formatTime(duration)}</div>
 						</div>
 					</div>
-					{/* volume controls */}
-					<div className='flex items-center gap-4 min-w-[120px] w-[30%] justify-end'>
+					{/* volume controls (also hidden on small screens) */}
+					<div className='hidden sm:flex items-center gap-4 min-w-[120px] w-[30%] justify-end'>
 						<Button size='icon' variant='ghost' className='hover:text-white text-zinc-400' onClick={() => {
 							// microphone icon clicked (no toast)
 						}}>
