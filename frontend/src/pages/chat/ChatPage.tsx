@@ -1,12 +1,12 @@
 import Topbar from "@/components/Topbar";
 import { useChatStore } from "@/stores/useChatStore";
 import { useUser } from "@clerk/clerk-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import UsersList from "./components/UsersList";
 import ChatHeader from "./components/ChatHeader";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import MessageInput from "./components/MessageInput";
 
 const formatTime = (date: string) => {
@@ -18,8 +18,10 @@ const formatTime = (date: string) => {
 };
 const ChatPage = () => {
 	const { user } = useUser();
-	const { messages, selectedUser, fetchUsers, fetchMessages, users } = useChatStore();
+	const { messages, selectedUser, fetchUsers, fetchMessages, users, unreadCounts, setSelectedUser } = useChatStore();
 	const [search, setSearch] = useState("");
+	// ref to keep scroll pinned at bottom of conversation
+	const bottomRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
 		if (user) fetchUsers();
@@ -44,23 +46,60 @@ const ChatPage = () => {
 		}
 	}, [messages, user, users, selectedUser]);
 
-	console.log({ messages });
+	// scroll to bottom when messages update or chat changes
+	useEffect(() => {
+		if (bottomRef.current) {
+			bottomRef.current.scrollIntoView({ behavior: "smooth" });
+		}
+	}, [messages, selectedUser]);
+
+
 
 	return (
 		<main className='h-full rounded-lg bg-gradient-to-b from-zinc-800 to-zinc-900 overflow-hidden'>
 			<Topbar search={search} setSearch={setSearch} />
 
-			<div className='grid lg:grid-cols-[300px_1fr] grid-cols-[80px_1fr] h-[calc(100vh-180px)]'>
-				<UsersList />
+			{/* container switches to flex column on small screens and becomes a two-col grid at lg+ */}
+			<div className='flex flex-col flex-1 lg:grid lg:grid-cols-[300px_1fr]'>
+				{/* mobile user carousel - horizontal avatars */}
+				<div className='lg:hidden border-b border-zinc-800'>
+					<ScrollArea className='overflow-x-auto py-2'>
+						<div className='flex gap-4 px-4'>
+							{users.map((u) => (
+								<button
+									key={u._id}
+									onClick={() => setSelectedUser(u)}
+									className={`relative flex-shrink-0 ${selectedUser?.clerkId === u.clerkId ? "ring-2 ring-white" : ""
+										}`}
+								>
+									<Avatar className='size-8'>
+										<AvatarImage src={u.imageUrl} />
+										<AvatarFallback>{u.fullName[0]}</AvatarFallback>
+									</Avatar>
+									{unreadCounts.get(u.clerkId) ? (
+										<span className='absolute top-0 right-0 text-[10px] bg-red-500 text-white rounded-full px-1'>
+											{unreadCounts.get(u.clerkId)}
+										</span>
+									) : null}
+								</button>
+							))}
+						</div>
+					</ScrollArea>
+				</div>
+
+				{/* sidebar for larger screens */}
+				<div className='hidden lg:block'>
+					<UsersList />
+				</div>
 
 				{/* chat message */}
-				<div className='flex flex-col h-full'>
+				<div className='flex flex-col flex-1'>
 					{selectedUser ? (
 						<>
 							<ChatHeader />
 
 							{/* Messages */}
-							<ScrollArea className='h-[calc(100vh-340px)]'>
+							<ScrollArea className='flex-1'>
 								<div className='p-4 space-y-4'>
 									{messages.map((message) => (
 										<div
@@ -92,6 +131,8 @@ const ChatPage = () => {
 									))}
 								</div>
 							</ScrollArea>
+
+							<div ref={bottomRef} />
 
 							<MessageInput />
 						</>

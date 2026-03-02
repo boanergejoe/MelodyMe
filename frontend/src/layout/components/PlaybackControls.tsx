@@ -22,6 +22,7 @@ import {
 
 // React hooks for lifecycle and refs
 import { useEffect, useRef, useState } from "react";
+import { useUser } from "@clerk/clerk-react";
 
 // dialog components for displaying the queue
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -36,6 +37,10 @@ const formatTime = (seconds: number) => {
 };
 
 export const PlaybackControls = () => {
+	// auth status for guarding playback
+	const { user, isLoaded } = useUser();
+	const isLoggedIn = isLoaded && !!user;
+
 	// destructure needed values and actions from player store
 	const { currentSong, isPlaying, togglePlay, playNext, playPrevious, shuffle, toggleShuffle, repeat, cycleRepeat, queue, showQueue, toggleQueue } = usePlayerStore();
 
@@ -66,7 +71,7 @@ export const PlaybackControls = () => {
 
 		// Media Session API for mobile/Android notification controls
 		if ("mediaSession" in navigator && currentSong) {
-			navigator.mediaSession.metadata = new window.MediaMetadata({
+			navigator.mediaSession.metadata = new globalThis.MediaMetadata({
 				title: currentSong.title,
 				artist: currentSong.artist,
 				artwork: [
@@ -138,16 +143,16 @@ export const PlaybackControls = () => {
 							<p className='text-zinc-400'>Queue is empty</p>
 						) : (
 							queue.map((s) => (
-								<div
+								<button
 									key={s._id}
-									className='p-2 hover:bg-zinc-800 rounded cursor-pointer'
+									className='w-full text-left p-2 hover:bg-zinc-800 rounded cursor-pointer bg-transparent border-none text-inherit'
 									onClick={() => {
 										usePlayerStore.getState().setCurrentSong(s);
 										setTimeout(toggleQueue, 0);
 									}}
 								>
 									{s.title} - {s.artist}
-								</div>
+								</button>
 							))
 						)}
 					</div>
@@ -158,7 +163,7 @@ export const PlaybackControls = () => {
 				</DialogContent>
 			</Dialog>
 			<footer className='h-20 sm:h-24 bg-zinc-900 border-t border-zinc-800 px-2 sm:px-4'>
-				<div className='flex justify-between items-center h-full max-w-[1800px] mx-auto'>
+				<div className='flex flex-col sm:flex-row justify-between items-center h-full max-w-[1800px] mx-auto'>
 					{/* currently playing song (hidden on small screens to save space) */}
 					<div className='hidden sm:flex items-center gap-4 min-w-[120px] w-[30%]'>
 						{currentSong && (
@@ -181,66 +186,66 @@ export const PlaybackControls = () => {
 					</div>
 
 					{/* player controls*/}
-					<div className='flex flex-col items-center gap-2 flex-1 max-w-full'>
-						<div className='flex flex-wrap items-center gap-4 sm:gap-6 justify-center'>
-							<Button
-								size='icon'
-								variant='ghost'
-								className={`hidden sm:inline-flex text-zinc-400 ${shuffle ? "text-white" : "hover:text-white"}`}
-								onClick={handleShuffleClick}					>
-								<Shuffle className='h-4 w-4' />
-							</Button>
-							<Button
-								size='icon'
-								variant='ghost'
-								className='hover:text-white text-zinc-400'
-								onClick={playPrevious}
-								disabled={!currentSong}
-							>
-								<SkipBack className='h-4 w-4' />
-							</Button>
+					<div className='flex flex-col items-center gap-2 flex-1 max-w-full'>					{/* central controls area */}						<div className='flex flex-wrap items-center gap-4 sm:gap-6 justify-center'>
+						<Button
+							size='icon'
+							variant='ghost'
+							className={`hidden sm:inline-flex text-zinc-400 ${shuffle ? "text-white" : "hover:text-white"}`}
+							onClick={handleShuffleClick}
 
-							<Button
-								size='icon'
-								className='bg-white hover:bg-white/80 text-black rounded-full h-10 w-10 sm:h-8 sm:w-8'
-								onClick={togglePlay}
-								disabled={!currentSong}
-							>
-								{isPlaying ? <Pause className='h-5 w-5' /> : <Play className='h-5 w-5' />}
-							</Button>
-							<Button
-								size='icon'
-								variant='ghost'
-								className='hover:text-white text-zinc-400'
-								onClick={playNext}
-								disabled={!currentSong}
-							>
-								<SkipForward className='h-4 w-4' />
-							</Button>
-							<Button
-								size='icon'
-								variant='ghost'
-								className={`hidden sm:inline-flex text-zinc-400 ${repeat !== 'none' ? 'text-white' : 'hover:text-white'}`}
-								onClick={handleRepeatClick}
-								disabled={!currentSong}
-							>
-								{repeat === 'one' ? <Repeat1 className='h-4 w-4' /> : <Repeat className='h-4 w-4' />}
-							</Button>
-						</div>
+						>
+							<Shuffle className='h-4 w-4' />
+						</Button>
+						<Button
+							size='icon'
+							variant='ghost'
+							className='hover:text-white text-zinc-400'
+							onClick={playPrevious}
 
-						<div className='flex items-center gap-2 w-full'>
-							<div className='text-xs text-zinc-400 hidden sm:block'>{formatTime(currentTime)}</div>
+						>
+							<SkipBack className='h-4 w-4' />
+						</Button>
+						<Button
+							size='icon'
+							className='bg-white hover:bg-white/80 text-black rounded-full h-10 w-10 sm:h-8 sm:w-8'
+							onClick={togglePlay}
+
+						>
+							{isPlaying ? <Pause className='h-5 w-5' /> : <Play className='h-5 w-5' />}
+						</Button>
+						<Button
+							size='icon'
+							variant='ghost'
+							className='hover:text-white text-zinc-400'
+							onClick={playNext}
+
+						>
+							<SkipForward className='h-4 w-4' />
+						</Button>
+						<Button
+							size='icon'
+							variant='ghost'
+							className={`hidden sm:inline-flex text-zinc-400 ${repeat === 'none' ? 'hover:text-white' : 'text-white'}`}
+							onClick={handleRepeatClick}
+
+						>
+							{repeat === 'one' ? <Repeat1 className='h-4 w-4' /> : <Repeat className='h-4 w-4' />}
+						</Button>
+						<div className='flex items-center gap-2 w-full justify-center'>
+							{/* always show times on all screen sizes; limit slider width on narrow viewports */}
+							<div className='text-xs text-zinc-400'>{formatTime(currentTime)}</div>
 							<Slider
 								value={[currentTime]}
 								max={duration || 100}
 								step={1}
-								className='w-full hover:cursor-grab active:cursor-grabbing'
-								onValueChange={handleSeek}
+								className='w-full max-w-[500px] hover:cursor-grab active:cursor-grabbing'
+								onValueChange={(val) => { if (isLoggedIn) handleSeek(val); else toast.error("Login and listen to your favorite song"); }}
 							/>
-							<div className='text-xs text-zinc-400 hidden sm:block'>{formatTime(duration)}</div>
+							<div className='text-xs text-zinc-400'>{formatTime(duration)}</div>
 						</div>
 					</div>
-					{/* volume controls (also hidden on small screens) */}
+
+					</div>
 					<div className='hidden sm:flex items-center gap-4 min-w-[120px] w-[30%] justify-end'>
 						<Button size='icon' variant='ghost' className='hover:text-white text-zinc-400' onClick={() => {
 							// microphone icon clicked (no toast)
@@ -275,8 +280,12 @@ export const PlaybackControls = () => {
 							/>
 						</div>
 					</div>
+
 				</div>
 			</footer>
 		</>
 	);
 };
+
+
+
