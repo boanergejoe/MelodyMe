@@ -9,7 +9,10 @@ const UsersList = () => {
 	return (
 		<div className='border-r border-zinc-800'>
 			<div className='flex flex-col h-full'>
-				<ScrollArea className='h-[calc(100vh-280px)]'>
+				<div className='sticky top-0 z-10 bg-zinc-900 p-4 border-b border-zinc-800'>
+					<span className='font-semibold'>Contacts</span>
+				</div>
+				<ScrollArea className='h-[calc(100vh-280px)] pt-4'>
 					<div className='space-y-2 p-4'>
 						{isLoading ? (
 							<UsersListSkeleton />
@@ -36,6 +39,9 @@ const UsersList = () => {
 
 									<div className='flex-1 min-w-0 lg:block hidden'>
 										<span className='font-medium truncate'>{user.fullName}</span>
+										<span className={`ml-2 text-xs ${onlineUsers.has(user.clerkId) ? "text-green-500" : "text-zinc-500"}`}>
+											{onlineUsers.has(user.clerkId) ? "Active" : "Offline"}
+										</span>
 									</div>
 									{unreadCounts.get(user.clerkId) ? (
 										<span className='ml-auto text-xs bg-red-500 text-white rounded-full px-2'>

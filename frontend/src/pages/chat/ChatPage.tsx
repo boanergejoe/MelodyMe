@@ -56,11 +56,11 @@ const ChatPage = () => {
 
 
 	return (
-		<main className='h-full rounded-lg bg-gradient-to-b from-zinc-800 to-zinc-900 overflow-hidden'>
+		<main className='h-full rounded-lg bg-gradient-to-b from-zinc-800 to-zinc-900 overflow-hidden relative'>
 			<Topbar search={search} setSearch={setSearch} />
 
 			{/* container switches to flex column on small screens and becomes a two-col grid at lg+ */}
-			<div className='flex flex-col flex-1 lg:grid lg:grid-cols-[300px_1fr]'>
+			<div className='flex flex-col flex-1 mt-16 lg:grid lg:grid-cols-[300px_1fr]'>
 				{/* mobile user carousel - horizontal avatars */}
 				<div className='lg:hidden border-b border-zinc-800'>
 					<ScrollArea className='overflow-x-auto py-2'>
@@ -96,11 +96,13 @@ const ChatPage = () => {
 				<div className='flex flex-col flex-1'>
 					{selectedUser ? (
 						<>
-							<ChatHeader />
 
 							{/* Messages */}
-							<ScrollArea className='flex-1'>
-								<div className='p-4 space-y-4'>
+							<ScrollArea className='flex-1 relative overflow-y-auto max-h-[calc(100vh-180px-4rem)]'>
+								<div className='sticky top-0 z-10 bg-zinc-900'>
+									<ChatHeader />
+								</div>
+								<div className='p-4 space-y-4 pt-0'>
 									{messages.map((message) => (
 										<div
 											key={message._id}
@@ -129,10 +131,20 @@ const ChatPage = () => {
 											</div>
 										</div>
 									))}
+									<div ref={bottomRef} />
 								</div>
+								{(unreadCounts.get(selectedUser?.clerkId) ?? 0) > 0 && (
+									<div className='absolute bottom-20 right-4 z-10'>
+										<button
+											className='bg-red-500 text-white rounded-full px-3 py-1 shadow-lg flex items-center gap-2 animate-bounce'
+											onClick={() => bottomRef.current?.scrollIntoView({ behavior: "smooth" })}
+										>
+											<span className='font-bold'>{unreadCounts.get(selectedUser?.clerkId)}</span>
+											<span>New</span>
+										</button>
+									</div>
+								)}
 							</ScrollArea>
-
-							<div ref={bottomRef} />
 
 							<MessageInput />
 						</>
