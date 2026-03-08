@@ -7,6 +7,7 @@ export const getAllSongs = async (req, res, next) => {
 		const songs = await Song.find().sort({ createdAt: -1 });
 		res.json(songs);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -31,6 +32,7 @@ export const getFeaturedSongs = async (req, res, next) => {
 
 		res.json(songs);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -54,6 +56,7 @@ export const getMadeForYouSongs = async (req, res, next) => {
 
 		res.json(songs);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -77,6 +80,7 @@ export const getTrendingSongs = async (req, res, next) => {
 
 		res.json(songs);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -90,6 +94,7 @@ export const getMostPopularSongs = async (req, res, next) => {
 
 		res.json(songs);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -108,6 +113,7 @@ export const searchSongs = async (req, res, next) => {
 		});
 		res.status(200).json(results);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -128,10 +134,18 @@ export const getSongById = async (req, res, next) => {
 			]);
 			return res.json(songs);
 		}
+		// Validate ObjectId
+		const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+		if (!isValidObjectId) {
+			// If not valid ObjectId, return all songs (or you can customize to return featured, trending, etc.)
+			const songs = await Song.find().sort({ createdAt: -1 });
+			return res.json(songs);
+		}
 		const song = await Song.findById(id);
 		if (!song) return res.status(404).json({ message: "Song not found" });
 		res.json(song);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -141,6 +155,9 @@ export const getPopularSongs = async (req, res, next) => {
 		const songs = await Song.find().sort({ likesCount: -1 }).limit(10);
 		res.json(songs);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
+
+

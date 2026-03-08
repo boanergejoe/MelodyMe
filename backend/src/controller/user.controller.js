@@ -11,6 +11,7 @@ export const activatePremium = async (req, res, next) => {
 		await user.save();
 		res.status(200).json({ success: true, premium: true });
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -24,6 +25,7 @@ export const getAllUsers = async (req, res, next) => {
 		const users = await User.find({ clerkId: { $ne: currentUserId } });
 		res.status(200).json(users);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -42,6 +44,7 @@ export const getMessages = async (req, res, next) => {
 
 		res.status(200).json(messages);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -65,6 +68,7 @@ export const likeSong = async (req, res, next) => {
 		}
 		res.status(200).json(user);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -83,6 +87,7 @@ export const unlikeSong = async (req, res, next) => {
 		await Song.findByIdAndUpdate(songId, { $inc: { likesCount: -1 } });
 		res.status(200).json(user);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -95,6 +100,7 @@ export const getLikedSongs = async (req, res, next) => {
 		if (!user) return res.status(404).json({ message: "User not found" });
 		res.status(200).json(user.likedSongs);
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
@@ -106,6 +112,9 @@ export const getMe = async (req, res, next) => {
 		if (!user) return res.status(404).json({ message: "User not found" });
 		res.status(200).json({ premium: user.premium });
 	} catch (error) {
+		console.error(error);
 		next(error);
 	}
 };
+
+
