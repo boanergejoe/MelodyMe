@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 const PaymentDetailsPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { method, plan } = location.state || {};
+    const { method } = location.state || {};
 
     const [details, setDetails] = useState({
         cardNumber: "",
