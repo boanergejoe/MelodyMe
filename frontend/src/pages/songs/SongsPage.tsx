@@ -2,20 +2,20 @@
 import { useEffect, useState } from "react";
 import { useMusicStore } from "@/stores/useMusicStore";
 import SectionGrid from "../home/components/SectionGrid";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import Footer from "@/components/Footer";
 
 const SongsPage = () => {
     const { songs, fetchSongs, isLoading } = useMusicStore();
     const [search, setSearch] = useState("");
 
+    // fetch songs initially and whenever search query changes
     useEffect(() => {
-        fetchSongs();
-    }, [fetchSongs]);
+        fetchSongs(search);
+    }, [fetchSongs, search]);
 
-    const filteredSongs = songs.filter(
-        (s) =>
-            s.title.toLowerCase().includes(search.toLowerCase()) ||
-            s.artist.toLowerCase().includes(search.toLowerCase())
-    );
+    // if backend returns all songs when search is empty we can simply use songs directly
+    const filteredSongs = songs; // backend already filtered if "search" is provided
 
     return (
         <div className="p-2 sm:p-4">
@@ -29,7 +29,10 @@ const SongsPage = () => {
                     onChange={e => setSearch(e.target.value)}
                 />
             </div>
-            <SectionGrid songs={filteredSongs} title="Songs" isLoading={isLoading} showAll={false} />
+            <ScrollArea className="h-[600px]">
+                <SectionGrid songs={filteredSongs} title="Songs" isLoading={isLoading} showAll={false} />
+                <Footer />
+            </ScrollArea>
         </div>
     );
 };

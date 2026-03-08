@@ -57,6 +57,46 @@ MelodyMe is a full-stack music streaming and social platform designed to deliver
 - **Chat:** Real-time messaging with scroll-to-bottom, unread counts, and responsive input box.
 - **Admin:** Admin routes and pages for managing content.
 
+## Flowchart
+
+```mermaid
+graph TD
+  A[User] -->|Sign Up / Sign In| B[Clerk Auth]
+  B --> C[Frontend React App]
+  C -->|API Calls| D[Express Backend]
+  D --> E[MongoDB]
+  D --> F[Cloudinary]
+  D --> G[Socket.io]
+  C -->|WebSocket| G
+  C -->|Media| F
+  D -->|REST| H[Controllers]
+  H --> I[Models]
+  H --> J[Middleware]
+  H --> K[Routes]
+  C --> L[Providers]
+  C --> M[Stores]
+  C --> N[Pages]
+  C --> O[Components]
+  C --> P[Public Assets]
+  D --> Q[Seeds]
+  D --> R[Tmp Files]
+  C --> S[Toast Notifications]
+  C --> T[Playback Controls]
+  C --> U[Chat]
+  C --> V[Admin]
+  C --> W[Friends Activity]
+  C --> X[Premium]
+  X -->|Payment| D
+  D -->|Premium Status| E
+```
+
+## Premium Section
+- Styled like [Spotify Premium](https://open.spotify.com/premium)
+- User selects a plan and payment method
+- Redirects to payment details page for entry
+- After payment, user is granted premium access immediately
+- System automatically detects paid users and restricts access for non-premium users
+
 ## Setup & Deployment
 - **Frontend:**
   - Install dependencies: `npm install`

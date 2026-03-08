@@ -4,13 +4,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { useChatStore } from "@/stores/useChatStore";
+import { usePlaylistStore } from "@/stores/usePlaylistStore"; // show user playlists in sidebar
 import { SignedIn } from "@clerk/clerk-react";
-import { HomeIcon, Library, MessageCircle } from "lucide-react";
+import { HomeIcon, Library, MessageCircle, Settings, Radio } from "lucide-react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const LeftSidebar = () => {
-	const { albums, fetchAlbums, isLoading } = useMusicStore();
+	const { fetchAlbums, isLoading } = useMusicStore();
+	const { playlists, fetchPlaylists } = usePlaylistStore();
+	// note: albums still fetched for album pages, playlists fetched separately for user library
 	const { unreadCounts } = useChatStore();
 	let totalUnread = Array.from(unreadCounts.values()).reduce((sum, v) => sum + v, 0);
 	if (totalUnread > 99) totalUnread = 99; // cap for display
@@ -18,7 +21,8 @@ const LeftSidebar = () => {
 
 	useEffect(() => {
 		fetchAlbums();
-	}, [fetchAlbums]);
+		fetchPlaylists(); // load playlists for sidebar
+	}, [fetchAlbums, fetchPlaylists]);
 
 
 
@@ -39,6 +43,45 @@ const LeftSidebar = () => {
 					>
 						<HomeIcon className='mr-2 size-5' />
 						<span className='hidden md:inline'>Home</span>
+					</Link>
+
+					<Link
+						to="/premium"
+						className={cn(
+							buttonVariants({
+								variant: "ghost",
+								className: "w-full justify-start text-white hover:bg-zinc-800",
+							})
+						)}
+					>
+						<Library className='mr-2 size-5' />
+						<span className='hidden md:inline'>Premium</span>
+					</Link>
+
+					<Link
+						to="/settings"
+						className={cn(
+							buttonVariants({
+								variant: "ghost",
+								className: "w-full justify-start text-white hover:bg-zinc-800",
+							})
+						)}
+					>
+						<Settings className='mr-2 size-5' />
+						<span className='hidden md:inline'>Settings</span>
+					</Link>
+
+					<Link
+						to="/radio"
+						className={cn(
+							buttonVariants({
+								variant: "ghost",
+								className: "w-full justify-start text-white hover:bg-zinc-800",
+							})
+						)}
+					>
+						<Radio className='mr-2 size-5' />
+						<span className='hidden md:inline'>Radio</span>
 					</Link>
 
 					<SignedIn>
@@ -68,34 +111,41 @@ const LeftSidebar = () => {
 				<div className='flex items-center justify-between mb-4'>
 					<div className='flex items-center text-white px-2'>
 						<Library className='size-5 mr-2' />
-						<span className='hidden md:inline'>Playlists</span>
+						<span className='hidden md:inline'>Library</span>
 					</div>
 				</div>
 
-				<ScrollArea className='h-[calc(100vh-300px)]'>
-					<div className='space-y-2'>
-						{isLoading ? (
-							<PlaylistSkeleton />
-						) : (
-							albums.map((album) => (
-								<Link
-									to={`/albums/${album._id}`}
-									key={album._id}
-									className='p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer'
-								>
-									<img
-										src={album.imageUrl}
-										alt='Playlist img'
-										className='size-12 rounded-md flex-shrink-0 object-cover'
-									/>
+				{/* quick links: liked songs */}
+				<ScrollArea className='h-full'>
+					<div className='mb-2'>
+						<Link to='/liked' className='text-sm text-zinc-300 hover:text-white'>
+							♥ Liked Songs
+						</Link>
+						<div className='space-y-2'>
+							{isLoading ? (
+								<PlaylistSkeleton />
+							) : (
+								playlists.map((pl) => (
+									<Link
+										to={`/playlists/${pl._id}`}
+										key={pl._id}
+										className='p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer'
+									>
+										{/* playlist cover: show first song image if we have it */}
+										<img
+											src={pl.songs?.[0]?.imageUrl || ""}
+											alt='Playlist img'
+											className='size-12 rounded-md flex-shrink-0 object-cover'
+										/>
 
-									<div className='flex-1 min-w-0 hidden md:block'>
-										<p className='font-medium truncate'>{album.title}</p>
-										<p className='text-sm text-zinc-400 truncate'>Album • {album.artist}</p>
-									</div>
-								</Link>
-							))
-						)}
+										<div className='flex-1 min-w-0 hidden md:block'>
+											<p className='font-medium truncate'>{pl.title}</p>
+											<p className='text-sm text-zinc-400 truncate'>{pl.songs.length} songs</p>
+										</div>
+									</Link>
+								))
+							)}
+						</div>
 					</div>
 				</ScrollArea>
 			</div>

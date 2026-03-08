@@ -15,6 +15,17 @@ const userSchema = new mongoose.Schema(
 			required: true,
 			unique: true,
 		},
+		// list of songs this user has liked (User Library > Songs)
+		likedSongs: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Song",
+			},
+		],
+		premium: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	{ timestamps: true } //  createdAt, updatedAt
 );

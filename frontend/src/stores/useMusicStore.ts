@@ -12,6 +12,7 @@ interface MusicStore {
 	featuredSongs: Song[];
 	madeForYouSongs: Song[];
 	trendingSongs: Song[];
+	popularSongs: Song[];
 	stats: Stats;
 
 	fetchAlbums: () => Promise<void>;
@@ -19,8 +20,9 @@ interface MusicStore {
 	fetchFeaturedSongs: () => Promise<void>;
 	fetchMadeForYouSongs: () => Promise<void>;
 	fetchTrendingSongs: () => Promise<void>;
+	fetchPopularSongs: () => Promise<void>;
 	fetchStats: () => Promise<void>;
-	fetchSongs: () => Promise<void>;
+	fetchSongs: (q?: string) => Promise<void>;
 	deleteSong: (id: string) => Promise<void>;
 	deleteAlbum: (id: string) => Promise<void>;
 }
@@ -34,6 +36,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
 	madeForYouSongs: [],
 	featuredSongs: [],
 	trendingSongs: [],
+	popularSongs: [],
 	stats: {
 		totalSongs: 0,
 		totalAlbums: 0,
@@ -76,10 +79,17 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		}
 	},
 
-	fetchSongs: async () => {
+	fetchSongs: async (q?: string) => {
 		set({ isLoading: true, error: null });
 		try {
-			const response = await axiosInstance.get("/songs");
+			let response;
+			if (q && q.trim()) {
+				// call server search endpoint instead of loading full list
+				// API docs: https://developer.spotify.com/documentation/web-api/reference/#/operations/search
+				response = await axiosInstance.get(`/songs/search?q=${encodeURIComponent(q)}`);
+			} else {
+				response = await axiosInstance.get("/songs");
+			}
 			set({ songs: response.data });
 		} catch (error: any) {
 			set({ error: error.message });
@@ -154,6 +164,18 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		try {
 			const response = await axiosInstance.get("/songs/trending");
 			set({ trendingSongs: response.data });
+		} catch (error: any) {
+			set({ error: error.response.data.message });
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+
+	fetchPopularSongs: async () => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axiosInstance.get("/songs/popular");
+			set({ popularSongs: response.data });
 		} catch (error: any) {
 			set({ error: error.response.data.message });
 		} finally {

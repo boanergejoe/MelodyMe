@@ -5,6 +5,8 @@ import FeaturedSection from "./components/FeaturedSection";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import SectionGrid from "./components/SectionGrid";
 import { usePlayerStore } from "@/stores/usePlayerStore";
+import { useNavigate } from "react-router-dom";
+import Footer from "@/components/Footer";
 
 
 const HomePage = () => {
@@ -12,26 +14,37 @@ const HomePage = () => {
 		fetchFeaturedSongs,
 		fetchMadeForYouSongs,
 		fetchTrendingSongs,
+		fetchPopularSongs,
 		isLoading,
 		madeForYouSongs,
 		featuredSongs,
 		trendingSongs,
+		popularSongs,
 	} = useMusicStore();
 	const { initializeQueue } = usePlayerStore();
 	const [search, setSearch] = useState("");
+	const navigate = useNavigate();
+
+	const handleSearchChange = (value: string) => {
+		setSearch(value);
+		if (value.trim()) {
+			navigate(`/search?q=${encodeURIComponent(value)}`);
+		}
+	};
 
 	useEffect(() => {
 		fetchFeaturedSongs();
 		fetchMadeForYouSongs();
 		fetchTrendingSongs();
-	}, [fetchFeaturedSongs, fetchMadeForYouSongs, fetchTrendingSongs]);
+		fetchPopularSongs();
+	}, [fetchFeaturedSongs, fetchMadeForYouSongs, fetchTrendingSongs, fetchPopularSongs]);
 
 	useEffect(() => {
-		if (madeForYouSongs.length > 0 && featuredSongs.length > 0 && trendingSongs.length > 0) {
-			const allSongs = [...featuredSongs, ...madeForYouSongs, ...trendingSongs];
+		if (madeForYouSongs.length > 0 && featuredSongs.length > 0 && trendingSongs.length > 0 && popularSongs.length > 0) {
+			const allSongs = [...featuredSongs, ...madeForYouSongs, ...trendingSongs, ...popularSongs];
 			initializeQueue(allSongs);
 		}
-	}, [initializeQueue, madeForYouSongs, trendingSongs, featuredSongs]);
+	}, [initializeQueue, madeForYouSongs, trendingSongs, featuredSongs, popularSongs]);
 
 	// Filter songs by search
 	const filterSongs = (songs: typeof featuredSongs) =>
@@ -43,7 +56,7 @@ const HomePage = () => {
 
 	return (
 		<main className="rounded-md overflow-hidden h-full bg-gradient-to-b from-zinc-800 to-zinc-900">
-			<Topbar search={search} setSearch={setSearch} />
+			<Topbar search={search} setSearch={handleSearchChange} />
 			<ScrollArea className="h-[calc(100vh-180px)]">
 				<div className="p-2 sm:p-6">
 					<h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Your vibe, your way</h1>
@@ -51,7 +64,9 @@ const HomePage = () => {
 					<div className="space-y-8">
 						<SectionGrid title="Made For You" songs={filterSongs(madeForYouSongs)} isLoading={isLoading} showAll />
 						<SectionGrid title="Trending" songs={filterSongs(trendingSongs)} isLoading={isLoading} showAll />
+						<SectionGrid title="Most Popular" songs={filterSongs(popularSongs)} isLoading={isLoading} showAll />
 					</div>
+					<Footer />
 				</div>
 			</ScrollArea>
 		</main>

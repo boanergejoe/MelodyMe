@@ -6,6 +6,7 @@ export interface Song {
 	imageUrl: string;
 	audioUrl: string;
 	duration: number;
+	likesCount: number;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -40,4 +41,13 @@ export interface User {
 	clerkId: string;
 	fullName: string;
 	imageUrl: string;
+}
+
+export interface Playlist {
+	_id: string;
+	title: string;
+	userId: string;
+	songs: Song[];
+	createdAt: string;
+	updatedAt: string;
 }
