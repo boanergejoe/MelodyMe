@@ -1,5 +1,6 @@
 // Activate premium status for user
 import { User } from "../models/user.model.js";
+import { Payment } from "../models/payment.model.js";
 
 export const activatePremium = async (req, res, next) => {
 	try {
@@ -7,6 +8,18 @@ export const activatePremium = async (req, res, next) => {
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
 		const user = await User.findOne({ clerkId: userId });
 		if (!user) return res.status(404).json({ message: "User not found" });
+
+		// Save payment record with fixed receiver accounts
+		const { method = "Bank Card", amount = 9.99 } = req.body;
+		await Payment.create({
+			userId,
+			method,
+			amount,
+			receiverBankAccount: "5273 6400 8618 9896",
+			receiverMobileMoney: "+250 795 757 432",
+			status: "completed"
+		});
+
 		user.premium = true;
 		await user.save();
 		res.status(200).json({ success: true, premium: true });

@@ -106,6 +106,7 @@ const PremiumPage = () => {
         }
     ];
 
+    // Only show admin account number for payments
     const paymentMethods = [
         { name: "Bank Card", icon: CreditCard, color: "bg-blue-500", details: "Card: 5273 6400 8618 9896" },
         { name: "Mobile Money", icon: Smartphone, color: "bg-green-500", details: "Number: +250 795 757 432" },
@@ -159,8 +160,8 @@ const PremiumPage = () => {
                                 </div>
                                 <h2 className="text-2xl font-semibold text-white mb-4">{plan.name}</h2>
                                 <ul className="mb-6 text-zinc-300 text-base">
-                                    {plan.features.map((feature, idx) => (
-                                        <li key={idx} className="flex items-center gap-2 mb-2">
+                                    {plan.features.map(feature => (
+                                        <li key={feature} className="flex items-center gap-2 mb-2">
                                             <Check className="h-5 w-5 text-[#1db954]" />
                                             <span>{feature}</span>
                                         </li>
@@ -219,8 +220,8 @@ const PremiumPage = () => {
                 <section className="max-w-4xl w-full px-4 py-8 mx-auto">
                     <h2 className="text-2xl font-bold text-white mb-6 text-center">Frequently Asked Questions</h2>
                     <div className="space-y-6">
-                        {faqs.map((faq, idx) => (
-                            <div key={idx} className="bg-zinc-800 rounded-lg p-6 shadow">
+                        {faqs.map(faq => (
+                            <div key={faq.question} className="bg-zinc-800 rounded-lg p-6 shadow">
                                 <h3 className="text-lg font-semibold text-[#1db954] mb-2">{faq.question}</h3>
                                 <p className="text-zinc-300">{faq.answer}</p>
                             </div>
@@ -232,8 +233,8 @@ const PremiumPage = () => {
                 <section className="max-w-4xl w-full px-4 py-8 mx-auto">
                     <h2 className="text-2xl font-bold text-white mb-6 text-center">What our users say</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {testimonials.map((t, idx) => (
-                            <div key={idx} className="bg-zinc-800 rounded-lg p-6 flex flex-col items-center shadow">
+                        {testimonials.map(t => (
+                            <div key={t.name} className="bg-zinc-800 rounded-lg p-6 flex flex-col items-center shadow">
                                 <img src={t.avatar} alt={t.name} className="w-16 h-16 rounded-full mb-4" />
                                 <p className="text-zinc-300 text-center mb-2">"{t.text}"</p>
                                 <span className="text-[#1db954] font-semibold">{t.name}</span>

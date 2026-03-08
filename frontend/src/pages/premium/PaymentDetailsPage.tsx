@@ -9,6 +9,7 @@ const PaymentDetailsPage = () => {
     const location = useLocation();
     const { method } = location.state || {};
 
+    // Collect payment info for all methods, but do not display account numbers
     const [details, setDetails] = useState({
         cardNumber: "",
         cardName: "",
