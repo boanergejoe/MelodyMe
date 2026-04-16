@@ -9,15 +9,29 @@ export const activatePremium = async (req, res, next) => {
 		const user = await User.findOne({ clerkId: userId });
 		if (!user) return res.status(404).json({ message: "User not found" });
 
-		// Save payment record with fixed receiver accounts
-		const { method = "Bank Card", amount = 9.99 } = req.body;
+		const PLAN_PRICES = {
+			Individual: 5.99,
+			Duo: 10.99,
+			Family: 12.99,
+			Student: 2.99,
+		};
+
+		const {
+			method = "Bank Card",
+			plan = "Individual",
+			amount: requestedAmount,
+		} = req.body;
+
+		const amount = Number(requestedAmount ?? PLAN_PRICES[plan] ?? PLAN_PRICES.Individual);
+
 		await Payment.create({
 			userId,
 			method,
+			plan,
 			amount,
 			receiverBankAccount: "5273 6400 8618 9896",
 			receiverMobileMoney: "+250 795 757 432",
-			status: "completed"
+			status: "completed",
 		});
 
 		user.premium = true;

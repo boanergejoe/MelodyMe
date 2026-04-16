@@ -7,6 +7,8 @@ export interface Song {
 	audioUrl: string;
 	duration: number;
 	likesCount: number;
+	isPremium: boolean;
+	premiumTier?: string | null;
 	createdAt: string;
 	updatedAt: string;
 }

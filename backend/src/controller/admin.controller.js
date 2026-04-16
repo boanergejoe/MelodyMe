@@ -21,7 +21,7 @@ export const createSong = async (req, res, next) => {
 			return res.status(400).json({ message: "Please upload all files" });
 		}
 
-		const { title, artist, albumId, duration } = req.body;
+		const { title, artist, albumId, duration, isPremium, premiumTier } = req.body;
 		const audioFile = req.files.audioFile;
 		const imageFile = req.files.imageFile;
 
@@ -35,6 +35,8 @@ export const createSong = async (req, res, next) => {
 			imageUrl,
 			duration,
 			albumId: albumId || null,
+			isPremium: isPremium === "true" || isPremium === true,
+			premiumTier: premiumTier || null,
 		});
 
 		await song.save();
@@ -70,6 +72,32 @@ export const deleteSong = async (req, res, next) => {
 		res.status(200).json({ message: "Song deleted successfully" });
 	} catch (error) {
 		console.log("Error in deleteSong", error);
+		next(error);
+	}
+};
+
+export const updateSong = async (req, res, next) => {
+	try {
+		const { id } = req.params;
+		const { isPremium, premiumTier } = req.body;
+
+		const updates = {};
+		if (typeof isPremium !== "undefined") {
+			updates.isPremium = isPremium === "true" || isPremium === true;
+		}
+		if (typeof premiumTier !== "undefined") {
+			updates.premiumTier = premiumTier || null;
+		}
+
+		const updatedSong = await Song.findByIdAndUpdate(id, updates, { new: true });
+
+		if (!updatedSong) {
+			return res.status(404).json({ message: "Song not found" });
+		}
+
+		res.status(200).json(updatedSong);
+	} catch (error) {
+		console.log("Error in updateSong", error);
 		next(error);
 	}
 };

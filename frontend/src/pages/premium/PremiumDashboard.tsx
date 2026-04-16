@@ -1,7 +1,12 @@
+import { useEffect } from "react";
 import { usePremiumStore } from "@/stores/usePremiumStore";
 
 const PremiumDashboard = () => {
-    const { isPremium } = usePremiumStore();
+    const { isPremium, checkPremiumStatus } = usePremiumStore();
+
+    useEffect(() => {
+        checkPremiumStatus();
+    }, [checkPremiumStatus]);
 
     if (!isPremium) {
         return (

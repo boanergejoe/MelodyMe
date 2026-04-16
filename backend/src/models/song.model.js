@@ -27,6 +27,15 @@ const songSchema = new mongoose.Schema(
 			ref: "Album",
 			required: false,
 		},
+		isPremium: {
+			type: Boolean,
+			default: false,
+		},
+		premiumTier: {
+			type: String,
+			enum: ["Featured", "Exclusive", "Top Premium"],
+			default: null,
+		},
 		likesCount: {
 			type: Number,
 			default: 0,

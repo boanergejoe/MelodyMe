@@ -78,6 +78,21 @@ export const useMusicStore = create<MusicStore>((set) => ({
 			set({ isLoading: false });
 		}
 	},
+	updateSong: async (id, update) => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axiosInstance.patch(`/admin/songs/${id}`, update);
+			set((state) => ({
+				songs: state.songs.map((song) => (song._id === id ? response.data : song)),
+			}));
+			toast.success("Song updated successfully");
+		} catch (error: any) {
+			console.log("Error updating song", error);
+			toast.error("Failed to update song");
+		} finally {
+			set({ isLoading: false });
+		}
+	},
 
 	fetchSongs: async (q?: string) => {
 		set({ isLoading: true, error: null });

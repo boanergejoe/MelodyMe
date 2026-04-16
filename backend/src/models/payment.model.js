@@ -9,6 +9,10 @@ const paymentSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    plan: {
+        type: String,
+        required: true,
+    },
     amount: {
         type: Number,
         required: true,

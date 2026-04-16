@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { axiosInstance } from "@/lib/axios";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { Plus, Upload } from "lucide-react";
@@ -21,6 +22,8 @@ interface NewSong {
 	artist: string;
 	album: string;
 	duration: string;
+	isPremium: boolean;
+	premiumTier: string;
 }
 
 const AddSongDialog = () => {
@@ -33,6 +36,8 @@ const AddSongDialog = () => {
 		artist: "",
 		album: "",
 		duration: "0",
+		isPremium: false,
+		premiumTier: "Featured",
 	});
 
 	const [files, setFiles] = useState<{ audio: File | null; image: File | null }>({
@@ -56,6 +61,10 @@ const AddSongDialog = () => {
 			formData.append("title", newSong.title);
 			formData.append("artist", newSong.artist);
 			formData.append("duration", newSong.duration);
+			formData.append("isPremium", String(newSong.isPremium));
+			if (newSong.premiumTier) {
+				formData.append("premiumTier", newSong.premiumTier);
+			}
 			if (newSong.album && newSong.album !== "none") {
 				formData.append("albumId", newSong.album);
 			}
@@ -76,6 +85,8 @@ const AddSongDialog = () => {
 				artist: "",
 				album: "",
 				duration: "0",
+				isPremium: false,
+				premiumTier: "Featured",
 			});
 
 			setFiles({
@@ -115,6 +126,7 @@ const AddSongDialog = () => {
 						accept='audio/*'
 						ref={audioInputRef}
 						hidden
+						aria-label='Audio file upload'
 						onChange={(e) => setFiles((prev) => ({ ...prev, audio: e.target.files![0] }))}
 					/>
 
@@ -123,6 +135,7 @@ const AddSongDialog = () => {
 						ref={imageInputRef}
 						className='hidden'
 						accept='image/*'
+						aria-label='Image file upload'
 						onChange={(e) => setFiles((prev) => ({ ...prev, image: e.target.files![0] }))}
 					/>
 
@@ -190,6 +203,36 @@ const AddSongDialog = () => {
 							className='bg-zinc-800 border-zinc-700'
 						/>
 					</div>
+
+					<div className='flex items-center justify-between gap-4 rounded-lg border border-zinc-700 bg-zinc-900/90 p-4'>
+						<div>
+							<p className='text-sm font-semibold text-white'>Premium item</p>
+							<p className='text-xs text-zinc-500'>Mark this track as premium to make it available in the premium catalog.</p>
+						</div>
+						<Switch
+							checked={newSong.isPremium}
+							onCheckedChange={(checked) => setNewSong({ ...newSong, isPremium: checked })}
+						/>
+					</div>
+
+					{newSong.isPremium && (
+						<div className='space-y-2'>
+							<label className='text-sm font-medium'>Premium Tier</label>
+							<Select
+								value={newSong.premiumTier}
+								onValueChange={(value) => setNewSong({ ...newSong, premiumTier: value })}
+							>
+								<SelectTrigger className='bg-zinc-800 border-zinc-700'>
+									<SelectValue placeholder='Select tier' />
+								</SelectTrigger>
+								<SelectContent className='bg-zinc-800 border-zinc-700'>
+									<SelectItem value='Featured'>Featured</SelectItem>
+									<SelectItem value='Exclusive'>Exclusive</SelectItem>
+									<SelectItem value='Top Premium'>Top Premium</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+					)}
 
 					<div className='space-y-2'>
 						<label className='text-sm font-medium'>Album (Optional)</label>

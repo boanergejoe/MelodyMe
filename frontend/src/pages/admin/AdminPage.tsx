@@ -1,10 +1,11 @@
 import { useAuthStore } from "@/stores/useAuthStore";
 import Header from "./components/Header";
 import DashboardStats from "./components/DashboardStats";
-import { Album, Music } from "lucide-react";
+import { Album, Award, Music } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SongsTabContent from "./components/SongsTabContent";
 import AlbumsTabContent from "./components/AlbumsTabContent";
+import PremiumTabContent from "./components/PremiumTabContent";
 import { useEffect } from "react";
 import { useMusicStore } from "@/stores/useMusicStore";
 
@@ -40,6 +41,10 @@ const AdminPage = () => {
 						<Album className='mr-2 size-4' />
 						Albums
 					</TabsTrigger>
+					<TabsTrigger value='premium' className='data-[state=active]:bg-emerald-700'>
+						<Award className='mr-2 size-4' />
+						Premium
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value='songs'>
@@ -47,6 +52,9 @@ const AdminPage = () => {
 				</TabsContent>
 				<TabsContent value='albums'>
 					<AlbumsTabContent />
+				</TabsContent>
+				<TabsContent value='premium'>
+					<PremiumTabContent />
 				</TabsContent>
 			</Tabs>
 		</div>
