@@ -25,6 +25,7 @@ interface MusicStore {
 	fetchSongs: (q?: string) => Promise<void>;
 	deleteSong: (id: string) => Promise<void>;
 	deleteAlbum: (id: string) => Promise<void>;
+	updateSong: (id: string, update: Partial<Song>) => Promise<void>;
 }
 
 export const useMusicStore = create<MusicStore>((set) => ({
@@ -78,7 +79,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
 			set({ isLoading: false });
 		}
 	},
-	updateSong: async (id, update) => {
+	updateSong: async (id: string, update: Partial<Song>) => {
 		set({ isLoading: true, error: null });
 		try {
 			const response = await axiosInstance.patch(`/admin/songs/${id}`, update);

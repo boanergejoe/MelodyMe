@@ -25,6 +25,7 @@ const PaymentDetailsPage = () => {
         mobileNumber: "",
         paypalEmail: "",
         mpesaNumber: "",
+        mpesaPin: "",
     });
     const [mobileStep, setMobileStep] = useState<"phone" | "waiting">("phone");
     const [isConfirming, setIsConfirming] = useState(false);
