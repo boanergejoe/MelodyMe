@@ -1,124 +1,101 @@
-import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { axiosInstance } from "@/lib/axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
+import { Building2 } from "lucide-react";
 
 const PaymentDetailsPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const state = (location.state as { method?: string; plan?: string } | null) ?? null;
-    const method = state?.method ?? "Bank Card";
+    const state = (location.state as { plan?: string } | null) ?? null;
+    const method = "PesaPal";
     const plan = state?.plan ?? "Individual";
 
+    // Plan prices
+    const planPrices: Record<string, number> = {
+        Individual: 5.99,
+        Duo: 10.99,
+        Family: 12.99,
+        Student: 2.99,
+    };
+
+    const amount = planPrices[plan] ?? 5.99;
+
+    const [pesapalLoading, setPesaPalLoading] = useState(false);
+
     useEffect(() => {
-        if (!state?.method || !state?.plan) {
+        if (!state?.plan) {
             navigate("/premium", { replace: true });
         }
-    }, [navigate, state]);
+    }, [navigate, state?.plan]);
 
-    const [details, setDetails] = useState({
-        cardNumber: "",
-        cardName: "",
-        cardExpiry: "",
-        cardCVV: "",
-        mobileNumber: "",
-        paypalEmail: "",
-        mpesaNumber: "",
-        mpesaPin: "",
-    });
-    const [mobileStep, setMobileStep] = useState<"phone" | "waiting">("phone");
-    const [isConfirming, setIsConfirming] = useState(false);
-
-    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setDetails({ ...details, [e.target.name]: e.target.value });
-    };
-
-    const activatePremium = async () => {
-        const loadingToastId = toast.loading("Finalizing payment...");
-        const planPrices: Record<string, number> = {
-            Individual: 5.99,
-            Duo: 10.99,
-            Family: 12.99,
-            Student: 2.99,
-        };
-
+    // Handle PesaPal payment initiation
+    const handlePesaPalPayment = async () => {
+        setPesaPalLoading(true);
         try {
-            const res = await axiosInstance.post("/users/activate-premium", {
-                method,
+            console.log("Initiating PesaPal payment for plan:", plan, "amount:", planPrices[plan]);
+            const res = await axiosInstance.post("/users/create-pesapal-payment", {
                 plan,
                 amount: planPrices[plan] ?? 5.99,
+                method: "PesaPal",
             });
-            toast.dismiss(loadingToastId);
-            if (res.data.success) {
-                toast.success("Payment confirmed! Premium activated.");
-                navigate("/premium/dashboard", { replace: true });
+            
+            console.log("PesaPal response:", res.data);
+            
+            if (res.data.success && res.data.paymentUrl) {
+                // Open PesaPal in new tab or redirect
+                window.open(res.data.paymentUrl, '_blank');
+                toast.success("Redirecting to PesaPal for payment...");
+                
+                // Start polling for payment status
+                pollPaymentStatus(res.data.orderTrackingId);
             } else {
-                toast.error("Payment failed.");
-                setMobileStep("phone");
+                console.error("Invalid response structure:", res.data);
+                toast.error("Failed to initiate PesaPal payment");
+                setPesaPalLoading(false);
             }
-        } catch {
-            toast.dismiss(loadingToastId);
-            toast.error("Payment error.");
-            setMobileStep("phone");
-        } finally {
-            setIsConfirming(false);
+        } catch (error: any) {
+            console.error("Error initiating PesaPal payment:", error);
+            console.error("Error response:", error?.response?.data);
+            const errorMsg = error?.response?.data?.message || error?.message || "Error initiating PesaPal payment";
+            toast.error(errorMsg);
+            setPesaPalLoading(false);
         }
     };
 
-    useEffect(() => {
-        if (method === "Mobile Money" && mobileStep === "waiting") {
-            setIsConfirming(true);
-            const timer = window.setTimeout(() => {
-                toast.success("Payment detected on your device. Redirecting to Premium.");
-                activatePremium();
-            }, 3200);
+    // Poll for payment status
+    const pollPaymentStatus = (orderTrackingId: string) => {
+        const pollInterval = setInterval(async () => {
+            try {
+                const res = await axiosInstance.get(`/users/check-pesapal-payment/${orderTrackingId}`);
+                if (res.data.success && res.data.paymentStatus === "completed") {
+                    clearInterval(pollInterval);
+                    toast.success("Payment confirmed! Premium activated.");
+                    navigate("/premium/dashboard", { replace: true });
+                } else if (res.data.paymentStatus === "failed") {
+                    clearInterval(pollInterval);
+                    toast.error("Payment failed. Please try again.");
+                    setPesaPalLoading(false);
+                }
+            } catch (error) {
+                console.error("Error checking payment status");
+            }
+        }, 5000);
 
-            return () => window.clearTimeout(timer);
-        }
-    }, [method, mobileStep]);
+        // Stop polling after 5 minutes
+        setTimeout(() => {
+            clearInterval(pollInterval);
+            if (pesapalLoading) {
+                toast.error("Payment timeout. Please check your payment status.");
+                setPesaPalLoading(false);
+            }
+        }, 300000);
+    };
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
-        if (method === "Mobile Money" && mobileStep === "phone") {
-            if (!details.mobileNumber.trim()) {
-                toast.error("Please enter your mobile money number.");
-                return;
-            }
-
-            toast.success("A PIN has been sent to your mobile device. Complete the payment on your phone.");
-            setMobileStep("waiting");
-            return;
-        }
-
-        const loadingToastId = toast.loading("Processing payment...");
-        const planPrices: Record<string, number> = {
-            Individual: 5.99,
-            Duo: 10.99,
-            Family: 12.99,
-            Student: 2.99,
-        };
-
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-
-        try {
-            const res = await axiosInstance.post("/users/activate-premium", {
-                method,
-                plan,
-                amount: planPrices[plan] ?? 5.99,
-            });
-            toast.dismiss(loadingToastId);
-            if (res.data.success) {
-                toast.success("Payment successful! Premium activated.");
-                navigate("/premium/dashboard", { replace: true });
-            } else {
-                toast.error("Payment failed.");
-            }
-        } catch {
-            toast.dismiss(loadingToastId);
-            toast.error("Payment error.");
-        }
+        await handlePesaPalPayment();
     };
 
     return (
@@ -126,112 +103,31 @@ const PaymentDetailsPage = () => {
             <div className="bg-zinc-800 p-8 rounded-lg shadow-lg w-full max-w-md">
                 <h2 className="text-2xl font-bold mb-4 text-center">Enter {method} Payment Details</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {method === "Bank Card" && (
-                        <>
-                            <input
-                                type="text"
-                                name="cardNumber"
-                                placeholder="Card Number"
-                                value={details.cardNumber}
-                                onChange={handleChange}
-                                className="w-full p-2 rounded bg-zinc-700 text-white"
-                                required
-                            />
-                            <input
-                                type="text"
-                                name="cardName"
-                                placeholder="Cardholder Name"
-                                value={details.cardName}
-                                onChange={handleChange}
-                                className="w-full p-2 rounded bg-zinc-700 text-white"
-                                required
-                            />
-                            <input
-                                type="text"
-                                name="cardExpiry"
-                                placeholder="Expiry Date (MM/YY)"
-                                value={details.cardExpiry}
-                                onChange={handleChange}
-                                className="w-full p-2 rounded bg-zinc-700 text-white"
-                                required
-                            />
-                            <input
-                                type="password"
-                                name="cardCVV"
-                                placeholder="CVV"
-                                value={details.cardCVV}
-                                onChange={handleChange}
-                                className="w-full p-2 rounded bg-zinc-700 text-white"
-                                required
-                            />
-                        </>
-                    )}
-                    {method === "Mobile Money" && (
-                        <>
-                            {mobileStep === "phone" ? (
-                                <>
-                                    <input
-                                        type="text"
-                                        name="mobileNumber"
-                                        placeholder="Mobile Money Number"
-                                        value={details.mobileNumber}
-                                        onChange={handleChange}
-                                        className="w-full p-2 rounded bg-zinc-700 text-white"
-                                        required
-                                    />
-                                    <div className="rounded-lg border border-zinc-700 bg-zinc-800 p-3 text-sm text-zinc-300">
-                                        Enter your phone number to receive a verification PIN on your mobile device. You will complete the PIN entry on your phone, not on the website.
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="rounded-lg border border-zinc-700 bg-zinc-800 p-5 text-sm text-zinc-300">
-                                    A PIN has been sent to {details.mobileNumber}. Complete the transaction on your mobile device.
-                                    Once the payment is detected successfully, you will be redirected to your Premium dashboard.
+                    <div className="space-y-4">
+                        <div className="rounded-lg border border-purple-500/30 bg-purple-500/10 p-4">
+                            <div className="flex items-center gap-3 mb-3">
+                                <Building2 className="h-8 w-8 text-purple-500" />
+                                <div>
+                                    <h3 className="text-white font-semibold">PesaPal Payment</h3>
+                                    <p className="text-zinc-400 text-sm">Secure online payment through PesaPal</p>
                                 </div>
-                            )}
-                        </>
-                    )}
-                    {method === "PayPal" && (
-                        <input
-                            type="email"
-                            name="paypalEmail"
-                            placeholder="PayPal Email"
-                            value={details.paypalEmail}
-                            onChange={handleChange}
-                            className="w-full p-2 rounded bg-zinc-700 text-white"
-                            required
-                        />
-                    )}
-                    {method === "M-Pesa" && (
-                        <>
-                            <input
-                                type="text"
-                                name="mpesaNumber"
-                                placeholder="M-Pesa Number"
-                                value={details.mpesaNumber}
-                                onChange={handleChange}
-                                className="w-full p-2 rounded bg-zinc-700 text-white"
-                                required
-                            />
-                            <input
-                                type="password"
-                                name="mpesaPin"
-                                placeholder="Enter PIN"
-                                value={details.mpesaPin}
-                                onChange={handleChange}
-                                className="w-full p-2 rounded bg-zinc-700 text-white"
-                                required
-                            />
-                        </>
-                    )}
-                    <Button type="submit" className="w-full mt-4" disabled={method === "Mobile Money" && mobileStep === "waiting" && isConfirming}>
-                        {method === "Mobile Money"
-                            ? mobileStep === "phone"
-                                ? "Send PIN"
-                                : isConfirming
-                                ? "Waiting for mobile confirmation..."
-                                : "Processing confirmation"
-                            : "Pay & Activate Premium"}
+                            </div>
+                            <div className="text-zinc-300 text-sm mb-3">
+                                <p className="mb-2">Plan: <span className="text-white font-medium">{plan}</span></p>
+                                <p className="text-2xl font-bold text-[#1db954]">${amount.toFixed(2)}/month</p>
+                            </div>
+                            <p className="text-xs text-zinc-400">
+                                You will be redirected to PesaPal to complete your payment securely.
+                            </p>
+                        </div>
+                    </div>
+                    <Button 
+                        type="button" 
+                        className="w-full mt-4 bg-purple-600 hover:bg-purple-700" 
+                        onClick={handlePesaPalPayment}
+                        disabled={pesapalLoading}
+                    >
+                        {pesapalLoading ? "Redirecting to PesaPal..." : "Pay with PesaPal"}
                     </Button>
                 </form>
             </div>

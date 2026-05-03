@@ -10,26 +10,32 @@ import Footer from "@/components/Footer";
 const SearchPage = () => {
     const [searchParams] = useSearchParams();
     const query = searchParams.get("q") || "";
+    const genre = searchParams.get("genre") || "";
     const [songs, setSongs] = useState<Song[]>([]);
     const [albums, setAlbums] = useState<Album[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const search = async () => {
-            if (!query) return;
+            if (!query && !genre) return;
 
             setIsLoading(true);
             try {
+                const songsRequest = genre
+                    ? axiosInstance.get(`/songs/search?genre=${encodeURIComponent(genre)}`)
+                    : axiosInstance.get(`/songs/search?q=${encodeURIComponent(query)}`);
+
                 const [songsRes, albumsRes] = await Promise.all([
-                    axiosInstance.get(`/songs/search?q=${encodeURIComponent(query)}`),
+                    songsRequest,
                     axiosInstance.get(`/albums`)
                 ]);
 
-                // Filter albums by title or artist matching query
-                const filteredAlbums = albumsRes.data.filter((album: Album) =>
-                    album.title.toLowerCase().includes(query.toLowerCase()) ||
-                    album.artist.toLowerCase().includes(query.toLowerCase())
-                );
+                const filteredAlbums = genre
+                    ? albumsRes.data.filter((album: Album) => album.genre?.toLowerCase() === genre.toLowerCase())
+                    : albumsRes.data.filter((album: Album) =>
+                        album.title.toLowerCase().includes(query.toLowerCase()) ||
+                        album.artist.toLowerCase().includes(query.toLowerCase())
+                    );
 
                 setSongs(songsRes.data);
                 setAlbums(filteredAlbums);
@@ -41,11 +47,13 @@ const SearchPage = () => {
         };
 
         search();
-    }, [query]);
+    }, [query, genre]);
 
     return (
         <div className="p-4 sm:p-6">
-            <h1 className="text-3xl font-bold mb-6">Search Results for "{query}"</h1>
+            <h1 className="text-3xl font-bold mb-6">
+                {genre ? `Genre: ${genre}` : query === "*" ? "Browse all songs" : `Search Results for \"${query}\"`}
+            </h1>
 
             <Tabs defaultValue="songs" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">

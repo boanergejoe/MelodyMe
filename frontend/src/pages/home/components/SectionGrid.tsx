@@ -36,7 +36,7 @@ const SectionGrid = ({ songs, title, isLoading, showAll = false, showAllLabel }:
 				)}
 			</div>
 
-			<div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+			<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
 				{songs.map((song) => {
 					const isLiked = likedSongs.some((likedSong) => likedSong._id === song._id);
 					return (

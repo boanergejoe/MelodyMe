@@ -18,6 +18,8 @@ import {
 	SkipBack,
 	SkipForward,
 	Volume1,
+	Volume2,
+	VolumeX,
 } from "lucide-react";
 
 // React hooks for lifecycle and refs
@@ -25,7 +27,7 @@ import { useEffect, useRef, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 
 // dialog components for displaying the queue
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // toast notifications for user feedback
 import toast from "react-hot-toast";
@@ -46,6 +48,8 @@ export const PlaybackControls = () => {
 
 	// local component state: volume slider, time/duration display
 	const [volume, setVolume] = useState(75);
+	const [previousVolume, setPreviousVolume] = useState(75);
+	const [isMuted, setIsMuted] = useState(false);
 	const [currentTime, setCurrentTime] = useState(0);
 	const [duration, setDuration] = useState(0);
 	// ref holds <audio> element so we can inspect/seek it
@@ -97,6 +101,12 @@ export const PlaybackControls = () => {
 		};
 	}, [currentSong, playNext, playPrevious, togglePlay]);
 
+	useEffect(() => {
+		if (audioRef.current) {
+			audioRef.current.volume = isMuted ? 0 : volume / 100;
+		}
+	}, [volume, isMuted]);
+
 	// helper: respond to slider change by seeking audio
 	const handleSeek = (value: number[]) => {
 		if (audioRef.current) {
@@ -130,6 +140,39 @@ export const PlaybackControls = () => {
 		toast(message);
 	};
 
+	// handle volume mute/unmute
+	const handleVolumeMuteClick = () => {
+		if (isMuted) {
+			setIsMuted(false);
+			setVolume(previousVolume);
+			if (audioRef.current) {
+				audioRef.current.volume = previousVolume / 100;
+			}
+			toast("Unmuted");
+		} else {
+			setPreviousVolume(volume);
+			setIsMuted(true);
+			setVolume(0);
+			if (audioRef.current) {
+				audioRef.current.volume = 0;
+			}
+			toast("Muted");
+		}
+	};
+
+	// handle volume slider change
+	const handleVolumeChange = (value: number[]) => {
+		const newVolume = value[0];
+		setVolume(newVolume);
+		setIsMuted(newVolume === 0);
+		if (newVolume > 0) {
+			setPreviousVolume(newVolume);
+		}
+		if (audioRef.current) {
+			audioRef.current.volume = newVolume / 100;
+		}
+	};
+
 	return (
 		<>
 			{/** queue dialog */}
@@ -156,43 +199,41 @@ export const PlaybackControls = () => {
 							))
 						)}
 					</div>
-					<DialogTrigger asChild>
-						<button className='hidden' />
-					</DialogTrigger>
-
 				</DialogContent>
 			</Dialog>
 			<footer className='h-20 sm:h-24 bg-zinc-900 border-t border-zinc-800 px-2 sm:px-4'>
-				<div className='flex flex-col sm:flex-row justify-between items-center h-full max-w-[1800px] mx-auto'>
-					{/* currently playing song (hidden on small screens to save space) */}
-					<div className='hidden sm:flex items-center gap-4 min-w-[120px] w-[30%]'>
-						{currentSong && (
-							<>
-								<img
-									src={currentSong.imageUrl}
-									alt={currentSong.title}
-									className='w-14 h-14 object-cover rounded-md'
-								/>
-								<div className='flex-1 min-w-0'>
-									<div className='font-medium truncate hover:underline cursor-pointer'>
-										{currentSong.title}
-									</div>
-									<div className='text-sm text-zinc-400 truncate hover:underline cursor-pointer'>
-										{currentSong.artist}
-									</div>
+				<div className='flex flex-wrap justify-between items-center h-full max-w-[1800px] mx-auto gap-2 sm:gap-4'>
+					{/* currently playing song */}
+					<div className='flex items-center gap-3 min-w-0 w-full sm:w-[30%]'>
+					{currentSong && (
+						<>
+							<img
+								src={currentSong.imageUrl}
+								alt={currentSong.title}
+								className='w-12 h-12 sm:w-14 sm:h-14 object-cover rounded-md'
+							/>
+							<div className='flex-1 min-w-0'>
+								<div className='font-medium truncate hover:underline cursor-pointer text-xs sm:text-sm'>
+									{currentSong.title}
 								</div>
-							</>
-						)}
+								<div className='text-[10px] sm:text-xs text-zinc-400 truncate hover:underline cursor-pointer'>
+									{currentSong.artist}
+								</div>
+							</div>
+						</>
+					)}
 					</div>
 
 					{/* player controls*/}
-					<div className='flex flex-col items-center gap-2 flex-1 max-w-full'>					{/* central controls area */}						<div className='flex flex-wrap items-center gap-4 sm:gap-6 justify-center'>
+					<div className='flex flex-col items-center gap-2 sm:gap-3 flex-1 min-w-0 w-full sm:w-[42%]'>
+						{/* central controls area */}
+						<div className='flex flex-wrap items-center gap-2 sm:gap-4 lg:gap-6 justify-center'>
 						<Button
 							size='icon'
 							variant='ghost'
-							className={`hidden sm:inline-flex text-zinc-400 ${shuffle ? "text-white" : "hover:text-white"}`}
+							className={`text-zinc-400 text-xs sm:text-sm ${shuffle ? "text-white" : "hover:text-white"}`}
 							onClick={handleShuffleClick}
-
+							title="Shuffle"
 						>
 							<Shuffle className='h-4 w-4' />
 						</Button>
@@ -201,15 +242,15 @@ export const PlaybackControls = () => {
 							variant='ghost'
 							className='hover:text-white text-zinc-400'
 							onClick={playPrevious}
-
+							title="Previous song"
 						>
 							<SkipBack className='h-4 w-4' />
 						</Button>
 						<Button
 							size='icon'
-							className='bg-white hover:bg-white/80 text-black rounded-full h-10 w-10 sm:h-8 sm:w-8'
+							className='bg-white hover:bg-white/80 text-black rounded-full h-10 w-10 sm:h-8 sm:w-8 flex-shrink-0'
 							onClick={togglePlay}
-
+							title={isPlaying ? "Pause" : "Play"}
 						>
 							{isPlaying ? <Pause className='h-5 w-5' /> : <Play className='h-5 w-5' />}
 						</Button>
@@ -218,65 +259,67 @@ export const PlaybackControls = () => {
 							variant='ghost'
 							className='hover:text-white text-zinc-400'
 							onClick={playNext}
-
+							title="Next song"
 						>
 							<SkipForward className='h-4 w-4' />
 						</Button>
 						<Button
 							size='icon'
 							variant='ghost'
-							className={`hidden sm:inline-flex text-zinc-400 ${repeat === 'none' ? 'hover:text-white' : 'text-white'}`}
+							className={`text-zinc-400 ${repeat === 'none' ? 'hover:text-white' : 'text-white'}`}
 							onClick={handleRepeatClick}
-
+							title="Repeat"
 						>
 							{repeat === 'one' ? <Repeat1 className='h-4 w-4' /> : <Repeat className='h-4 w-4' />}
 						</Button>
 						<div className='flex items-center gap-2 w-full justify-center'>
-							{/* always show times on all screen sizes; limit slider width on narrow viewports */}
-							<div className='text-xs text-zinc-400'>{formatTime(currentTime)}</div>
-							<Slider
-								value={[currentTime]}
-								max={duration || 100}
-								step={1}
-								className='w-full max-w-[500px] hover:cursor-grab active:cursor-grabbing'
-								onValueChange={(val) => { if (isLoggedIn) handleSeek(val); else toast.error("Login and listen to your favorite song"); }}
-							/>
-							<div className='text-xs text-zinc-400'>{formatTime(duration)}</div>
+							<div className='flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950/90 px-3 py-1 w-full sm:max-w-[360px] md:max-w-[520px] justify-center'>
+								<span className='text-[10px] sm:text-xs text-zinc-400'>{formatTime(currentTime)}</span>
+								<span className='h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_6px_rgba(16,185,129,0.18)]' />
+								<span className='text-[10px] sm:text-xs font-medium text-white'>{formatTime(duration)}</span>
+							</div>
 						</div>
 					</div>
 
 					</div>
-					<div className='hidden sm:flex items-center gap-4 min-w-[120px] w-[30%] justify-end'>
-						<Button size='icon' variant='ghost' className='hover:text-white text-zinc-400' onClick={() => {
+					<div className='flex items-center gap-2 sm:gap-3 lg:gap-4 min-w-[100px] w-full sm:w-[30%] justify-end flex-shrink-0'>
+						<Button size='icon' variant='ghost' className='hover:text-white text-zinc-400 hidden lg:inline-flex' onClick={() => {
 							// microphone icon clicked (no toast)
-						}}>
+						}} title="Voice control">
 							<Mic2 className='h-4 w-4' />
 						</Button>
-						<Button size='icon' variant='ghost' className={`hover:text-white text-zinc-400 ${queue.length > 0 ? 'text-white' : ''}`} onClick={toggleQueue}>
+						<Button size='icon' variant='ghost' className={`hover:text-white text-zinc-400 ${queue.length > 0 ? 'text-white' : ''}`} onClick={toggleQueue} title="Queue">
 							<ListMusic className='h-4 w-4' />
 						</Button>
-						<Button size='icon' variant='ghost' className='hover:text-white text-zinc-400' onClick={() => {
+						<Button size='icon' variant='ghost' className='hover:text-white text-zinc-400 hidden lg:inline-flex' onClick={() => {
 							// future device selector support
-						}}>
+						}} title="Devices">
 							<Laptop2 className='h-4 w-4' />
 						</Button>
 
-						<div className='flex items-center gap-2'>
-							<Button size='icon' variant='ghost' className='hover:text-white text-zinc-400'>
-								<Volume1 className='h-4 w-4' />
+						<div className='flex items-center gap-1 sm:gap-2'>
+							<Button 
+								size='icon' 
+								variant='ghost' 
+								className='hover:text-white text-zinc-400'
+								onClick={handleVolumeMuteClick}
+								title={isMuted ? 'Unmute' : 'Mute'}
+							>
+								{isMuted ? (
+									<VolumeX className='h-4 w-4' />
+								) : volume > 50 ? (
+									<Volume1 className='h-4 w-4' />
+								) : (
+									<Volume2 className='h-4 w-4' />
+								)}
 							</Button>
 
 							<Slider
 								value={[volume]}
 								max={100}
 								step={1}
-								className='w-24 hover:cursor-grab active:cursor-grabbing'
-								onValueChange={(value) => {
-									setVolume(value[0]);
-									if (audioRef.current) {
-										audioRef.current.volume = value[0] / 100;
-									}
-								}}
+								className='w-16 sm:w-20 lg:w-24 hover:cursor-grab active:cursor-grabbing'
+								onValueChange={handleVolumeChange}
 							/>
 						</div>
 					</div>

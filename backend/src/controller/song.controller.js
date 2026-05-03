@@ -99,18 +99,33 @@ export const getMostPopularSongs = async (req, res, next) => {
 	}
 };
 
-// server-side search endpoint. users can call /api/songs/search?q=term
+// server-side search endpoint. users can call /api/songs/search?q=term or /api/songs/search?genre=Pop
 // similar to Spotify's Search API: https://developer.spotify.com/documentation/web-api/reference/#/operations/search
 export const searchSongs = async (req, res, next) => {
 	try {
-		const { q } = req.query;
-		if (!q) return res.status(400).json({ message: "Query parameter q is required" });
+		const { q, genre, isPremium } = req.query;
 
-		// simple case-insensitive regex search on title or artist
-		const regex = new RegExp(q, "i");
-		const results = await Song.find({
-			$or: [{ title: regex }, { artist: regex }],
-		});
+		// Build filter object
+		const filter = {};
+
+		if (q && q !== "*") {
+			const regex = new RegExp(q, "i");
+			filter.$or = [{ title: regex }, { artist: regex }];
+		}
+
+		if (genre) {
+			filter.genre = genre;
+		}
+
+		if (typeof isPremium !== "undefined") {
+			filter.isPremium = String(isPremium) === "true";
+		}
+
+		if (!q && !genre && typeof isPremium === "undefined") {
+			return res.status(400).json({ message: "Query parameter q, genre, or isPremium is required" });
+		}
+
+		const results = await Song.find(filter);
 		res.status(200).json(results);
 	} catch (error) {
 		console.error(error);
@@ -146,6 +161,41 @@ export const getSongById = async (req, res, next) => {
 		res.json(song);
 	} catch (error) {
 		console.error(error);
+		next(error);
+	}
+};
+
+export const downloadSong = async (req, res, next) => {
+	try {
+		const { id } = req.params;
+		const userId = req.auth?.userId;
+
+		// Check if user is authenticated
+		if (!userId) {
+			return res.status(401).json({ message: "Unauthorized" });
+		}
+
+		// Get the song
+		const song = await Song.findById(id);
+		if (!song) {
+			return res.status(404).json({ message: "Song not found" });
+		}
+
+		// Check if song is premium
+		if (song.isPremium) {
+			// Verify user has premium access
+			const User = require("../models/user.model.js").User;
+			const user = await User.findById(userId);
+			
+			if (!user || !user.isPremium) {
+				return res.status(403).json({ message: "Premium access required" });
+			}
+		}
+
+		// Redirect to the audio URL (served from Cloudinary or storage)
+		res.json({ success: true, downloadUrl: song.audioUrl, songTitle: song.title });
+	} catch (error) {
+		console.error("Error in downloadSong:", error);
 		next(error);
 	}
 };

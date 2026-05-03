@@ -107,45 +107,81 @@ const LeftSidebar = () => {
 			</div>
 
 			{/* Library section */}
-			<div className='flex-1 rounded-lg bg-zinc-900 p-4'>
+			<div className='flex-1 rounded-lg bg-zinc-900 p-4 flex flex-col'>
 				<div className='flex items-center justify-between mb-4'>
 					<div className='flex items-center text-white px-2'>
 						<Library className='size-5 mr-2' />
 						<span className='hidden md:inline'>Library</span>
 					</div>
+					<span className='text-xs text-zinc-400 hidden md:inline'>{playlists.length + 2} items</span>
 				</div>
 
-				{/* quick links: liked songs */}
-				<ScrollArea className='h-full'>
-					<div className='mb-2'>
-						<Link to='/liked' className='text-sm text-zinc-300 hover:text-white'>
-							♥ Liked Songs
-						</Link>
+				{/* quick links: liked songs and all songs */}
+				<ScrollArea className='flex-1'>
+					<div className='space-y-3 pr-3'>
+						{/* Quick links section */}
 						<div className='space-y-2'>
-							{isLoading ? (
-								<PlaylistSkeleton />
-							) : (
-								playlists.map((pl) => (
-									<Link
-										to={`/playlists/${pl._id}`}
-										key={pl._id}
-										className='p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer'
-									>
-										{/* playlist cover: show first song image if we have it */}
-										<img
-											src={pl.songs?.[0]?.imageUrl || ""}
-											alt='Playlist img'
-											className='size-12 rounded-md flex-shrink-0 object-cover'
-										/>
-
-										<div className='flex-1 min-w-0 hidden md:block'>
-											<p className='font-medium truncate'>{pl.title}</p>
-											<p className='text-sm text-zinc-400 truncate'>{pl.songs.length} songs</p>
-										</div>
-									</Link>
-								))
-							)}
+							<Link 
+								to='/liked' 
+								className='text-sm text-zinc-300 hover:text-white hover:bg-zinc-800/50 block p-2 rounded-md transition'
+								title='Your liked songs collection'
+							>
+								♥ Liked Songs
+							</Link>
+							<Link 
+								to='/songs' 
+								className='text-sm text-zinc-300 hover:text-white hover:bg-zinc-800/50 block p-2 rounded-md transition'
+								title='Browse all available songs'
+							>
+								🎵 All Songs
+							</Link>
 						</div>
+
+						{/* Playlists section */}
+						{playlists.length > 0 && (
+							<div>
+								<p className='text-xs font-semibold text-zinc-400 px-2 uppercase tracking-wider mb-2'>Your Playlists</p>
+								<div className='space-y-2'>
+									{isLoading ? (
+										<PlaylistSkeleton />
+									) : (
+										playlists.map((pl) => (
+											<Link
+												to={`/playlists/${pl._id}`}
+												key={pl._id}
+												className='p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer transition'
+												title={`${pl.title} - ${pl.songs.length} songs`}
+											>
+												{/* playlist cover: show first song image if we have it */}
+												<img
+													src={pl.songs?.[0]?.imageUrl || ""}
+													alt='Playlist img'
+													className='size-12 rounded-md flex-shrink-0 object-cover'
+												/>
+
+												<div className='flex-1 min-w-0 hidden md:block'>
+													<p className='font-medium truncate text-white'>{pl.title}</p>
+													<p className='text-xs text-zinc-400 truncate'>{pl.songs.length} songs</p>
+												</div>
+											</Link>
+										))
+									)}
+								</div>
+							</div>
+						)}
+
+						{/* Empty state */}
+						{!isLoading && playlists.length === 0 && (
+							<div className='text-center py-6'>
+								<p className='text-sm text-zinc-400'>No playlists yet</p>
+								<Link 
+									to='/playlists' 
+									className='text-xs text-[#1db954] hover:text-[#1ed760] mt-2 inline-block'
+								>
+									Create one
+								</Link>
+							</div>
+						)}
 					</div>
 				</ScrollArea>
 			</div>

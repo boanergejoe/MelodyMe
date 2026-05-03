@@ -10,6 +10,10 @@ const songSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		genre: {
+			type: String,
+			default: "Pop",
+		},
 		imageUrl: {
 			type: String,
 			required: true,

@@ -9,6 +9,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { axiosInstance } from "@/lib/axios";
 import { Plus, Upload } from "lucide-react";
 import { useRef, useState } from "react";
@@ -19,10 +20,17 @@ const AddAlbumDialog = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
+	const genres = [
+		"Pop", "Rock", "Hip-Hop", "Jazz", "Classical", "Electronic",
+		"Country", "R&B", "Reggae", "Blues", "Folk", "Indie",
+		"Metal", "Punk", "Alternative", "Dance", "Soul", "Funk"
+	];
+
 	const [newAlbum, setNewAlbum] = useState({
 		title: "",
 		artist: "",
 		releaseYear: new Date().getFullYear(),
+		genre: "Pop",
 	});
 
 	const [imageFile, setImageFile] = useState<File | null>(null);
@@ -45,6 +53,7 @@ const AddAlbumDialog = () => {
 			const formData = new FormData();
 			formData.append("title", newAlbum.title);
 			formData.append("artist", newAlbum.artist);
+			formData.append("genre", newAlbum.genre);
 			formData.append("releaseYear", newAlbum.releaseYear.toString());
 			formData.append("imageFile", imageFile);
 
@@ -57,6 +66,7 @@ const AddAlbumDialog = () => {
 			setNewAlbum({
 				title: "",
 				artist: "",
+				genre: "Pop",
 				releaseYear: new Date().getFullYear(),
 			});
 			setImageFile(null);
@@ -88,6 +98,7 @@ const AddAlbumDialog = () => {
 						ref={fileInputRef}
 						onChange={handleImageSelect}
 						accept='image/*'
+						aria-label='Album artwork upload'
 						className='hidden'
 					/>
 					<button
@@ -132,8 +143,23 @@ const AddAlbumDialog = () => {
 							placeholder='Enter artist name'
 						/>
 					</div>
-					<div className='space-y-2'>
-						<label htmlFor='release-year' className='text-sm font-medium'>Release Year</label>
+					<div className='space-y-2'>				<label htmlFor='genre' className='text-sm font-medium'>Genre</label>
+				<Select
+					value={newAlbum.genre}
+					onValueChange={(value) => setNewAlbum({ ...newAlbum, genre: value })}
+				>
+					<SelectTrigger className='bg-zinc-800 border-zinc-700'>
+						<SelectValue placeholder='Select genre' />
+					</SelectTrigger>
+					<SelectContent className='bg-zinc-800 border-zinc-700'>
+						{genres.map((genre) => (
+							<SelectItem key={genre} value={genre}>{genre}</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+			</div>
+
+			<div className='space-y-2'>						<label htmlFor='release-year' className='text-sm font-medium'>Release Year</label>
 						<Input
 							id='release-year'
 							type='number'

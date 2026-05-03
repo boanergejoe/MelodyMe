@@ -1,14 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { Check, CreditCard, Smartphone, Wallet, Bitcoin, Star, Music, Shield, Download } from "lucide-react";
+import { Check, Star, Music, Shield, Download, Building2 } from "lucide-react";
 import Footer from "@/components/Footer";
 import { useNavigate } from "react-router-dom";
+import asifImg from "@/assets/Asif.jpeg";
+import nelsonImg from "@/assets/Nelson G.jpg";
+import marinoImg from "@/assets/Marino Emma.jpg";
 
 const PremiumPage = () => {
     const navigate = useNavigate();
     const handlePayment = (method: string, plan: string) => {
         navigate("/premium/payment-details", { state: { method, plan } });
     };
-
     const plans = [
         {
             name: "Individual",
@@ -83,35 +85,32 @@ const PremiumPage = () => {
         },
         {
             question: "How do I pay?",
-            answer: "You can pay with bank card, mobile money, PayPal, or M-Pesa."
+            answer: "Premium payments are processed securely through PesaPal."
         }
     ];
 
     // Testimonials
     const testimonials = [
         {
-            name: "Santos",
-            text: "Premium changed the way I listen to music. No ads, just pure vibes!",
-            avatar: "https://randomuser.me/api/portraits/men/32.jpg"
-        },
-        {
-            name: "Nelson",
-            text: "Offline listening is a lifesaver for my commute.",
-            avatar: "https://randomuser.me/api/portraits/women/44.jpg"
-        },
-        {
             name: "Asif",
+            text: "Premium changed the way I listen to music. No ads, just pure vibes!",
+            avatar: asifImg
+        },
+        {
+            name: "Nelson G",
+            text: "Offline listening is a lifesaver for my commute.",
+            avatar: nelsonImg
+        },
+        {
+            name: "Marino Emma",
             text: "Family plan keeps everyone happy. Kids love their playlists!",
-            avatar: "https://randomuser.me/api/portraits/men/65.jpg"
+            avatar: marinoImg
         }
     ];
 
-    // Only show admin account number for payments
+    // Only show PesaPal payment
     const paymentMethods = [
-        { name: "Bank Card", icon: CreditCard, color: "bg-blue-500", details: " Bank Card" },
-        { name: "Mobile Money", icon: Smartphone, color: "bg-green-500", details: "Mobile Money" },
-        { name: "PayPal", icon: Wallet, color: "bg-blue-600", details: "PayPal Number" },
-        { name: "M-Pesa", icon: Bitcoin, color: "bg-orange-500", details: "M-Pesa Number" }
+        { name: "PesaPal", icon: Building2, color: "bg-purple-500", details: "Pay via PesaPal" }
     ];
 
     return (
@@ -121,7 +120,7 @@ const PremiumPage = () => {
                 <section className="w-full py-16 px-4 flex flex-col items-center bg-gradient-to-r from-[#1db954] via-[#1ed760] to-[#1db954]">
                     <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 text-center drop-shadow-lg">Premium for everyone</h1>
                     <p className="text-2xl md:text-3xl text-white mb-6 text-center">Get millions of songs. No ads. Offline listening. Unlimited skips.</p>
-                    <Button className="bg-white text-[#1db954] font-bold text-lg px-8 py-3 rounded-full shadow-lg hover:bg-green-100 mb-4" onClick={() => handlePayment("Bank Card", "Individual")}>Get Premium</Button>
+                    <Button className="bg-white text-[#1db954] font-bold text-lg px-8 py-3 rounded-full shadow-lg hover:bg-green-100 mb-4" onClick={() => handlePayment("PesaPal", "Individual")}>Get Premium</Button>
                     <p className="text-lg text-white">30-day free trial for new users</p>
                 </section>
 

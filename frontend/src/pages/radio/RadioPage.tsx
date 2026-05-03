@@ -2,9 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Footer from "@/components/Footer";
+import { useNavigate } from "react-router-dom";
 import { Radio, Music } from "lucide-react";
 
 const RadioPage = () => {
+    const navigate = useNavigate();
     const genres = [
         "Pop", "Rock", "Hip-Hop", "Jazz", "Classical", "Electronic",
         "Country", "R&B", "Reggae", "Blues", "Folk", "Indie",
@@ -24,8 +26,8 @@ const RadioPage = () => {
                             <p className="mt-3 max-w-2xl text-zinc-300 text-lg">Explore curated radio stations for every mood, genre, and moment. Tap play to start a seamless music journey.</p>
                         </div>
                         <div className="flex flex-wrap gap-3">
-                            <Button className="rounded-full bg-[#1db954] px-6 py-3 text-base font-semibold text-black hover:bg-[#22e372]">Featured</Button>
-                            <Button variant="outline" className="rounded-full px-6 py-3 text-base">Browse all</Button>
+                            <Button onClick={() => navigate(`/search?q=*`)} className="rounded-full bg-[#1db954] px-6 py-3 text-base font-semibold text-black hover:bg-[#22e372]">Featured</Button>
+                            <Button onClick={() => navigate(`/search?q=*`)} variant="outline" className="rounded-full px-6 py-3 text-base">Browse all</Button>
                         </div>
                     </div>
                 </div>
@@ -43,13 +45,13 @@ const RadioPage = () => {
                             </div>
                             <div className="grid gap-4 md:grid-cols-2">
                                 {genres.slice(0, 8).map((genre) => (
-                                    <Card key={genre} className="bg-zinc-800 border border-zinc-700 shadow-sm hover:bg-zinc-700/80 transition-colors cursor-pointer">
+                                    <Card key={genre} onClick={() => navigate(`/search?genre=${encodeURIComponent(genre)}`)} className="bg-zinc-800 border border-zinc-700 shadow-sm hover:bg-zinc-700/80 transition-colors cursor-pointer">
                                         <CardHeader className="p-5">
                                             <CardTitle className="text-xl text-white">{genre} Radio</CardTitle>
                                         </CardHeader>
                                         <CardContent className="p-5 pt-0">
                                             <p className="text-zinc-400 mb-4">Station with fresh mixes, trends, and exclusive drops for {genre} fans.</p>
-                                            <Button className="w-full rounded-2xl bg-[#1db954] text-black hover:bg-[#1ef67a]">Play {genre}</Button>
+                                            <Button onClick={() => navigate(`/search?genre=${encodeURIComponent(genre)}`)} className="w-full rounded-2xl bg-[#1db954] text-black hover:bg-[#1ef67a]">Play {genre}</Button>
                                         </CardContent>
                                     </Card>
                                 ))}
@@ -61,7 +63,13 @@ const RadioPage = () => {
                             <ScrollArea className="h-72 rounded-3xl border border-zinc-800 bg-zinc-950 p-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     {genres.map((genre) => (
-                                        <div key={genre} className="rounded-3xl bg-zinc-900 px-4 py-3 text-center text-sm text-zinc-200 hover:bg-zinc-800 transition cursor-pointer">{genre}</div>
+                                        <div
+                                            key={genre}
+                                            onClick={() => navigate(`/search?genre=${encodeURIComponent(genre)}`)}
+                                            className="rounded-3xl bg-zinc-900 px-4 py-3 text-center text-sm text-zinc-200 hover:bg-zinc-800 transition cursor-pointer"
+                                        >
+                                            {genre}
+                                        </div>
                                     ))}
                                 </div>
                             </ScrollArea>

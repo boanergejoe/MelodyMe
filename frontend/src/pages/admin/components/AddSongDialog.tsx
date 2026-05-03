@@ -21,6 +21,7 @@ interface NewSong {
 	title: string;
 	artist: string;
 	album: string;
+	genre: string;
 	duration: string;
 	isPremium: boolean;
 	premiumTier: string;
@@ -31,10 +32,17 @@ const AddSongDialog = () => {
 	const [songDialogOpen, setSongDialogOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 
+	const genres = [
+		"Pop", "Rock", "Hip-Hop", "Jazz", "Classical", "Electronic",
+		"Country", "R&B", "Reggae", "Blues", "Folk", "Indie",
+		"Metal", "Punk", "Alternative", "Dance", "Soul", "Funk"
+	];
+
 	const [newSong, setNewSong] = useState<NewSong>({
 		title: "",
 		artist: "",
 		album: "",
+		genre: "Pop",
 		duration: "0",
 		isPremium: false,
 		premiumTier: "Featured",
@@ -60,8 +68,7 @@ const AddSongDialog = () => {
 
 			formData.append("title", newSong.title);
 			formData.append("artist", newSong.artist);
-			formData.append("duration", newSong.duration);
-			formData.append("isPremium", String(newSong.isPremium));
+					formData.append("genre", newSong.genre);
 			if (newSong.premiumTier) {
 				formData.append("premiumTier", newSong.premiumTier);
 			}
@@ -84,6 +91,7 @@ const AddSongDialog = () => {
 				title: "",
 				artist: "",
 				album: "",
+				genre: "Pop",
 				duration: "0",
 				isPremium: false,
 				premiumTier: "Featured",
@@ -194,45 +202,55 @@ const AddSongDialog = () => {
 					</div>
 
 					<div className='space-y-2'>
-						<label className='text-sm font-medium'>Duration (seconds)</label>
-						<Input
-							type='number'
-							min='0'
-							value={newSong.duration}
-							onChange={(e) => setNewSong({ ...newSong, duration: e.target.value || "0" })}
-							className='bg-zinc-800 border-zinc-700'
-						/>
+						<label className='text-sm font-medium'>Genre</label>
+						<Select
+							value={newSong.genre}
+							onValueChange={(value) => setNewSong({ ...newSong, genre: value })}
+						>
+							<SelectTrigger className='bg-zinc-800 border-zinc-700'>
+								<SelectValue placeholder='Select genre' />
+							</SelectTrigger>
+							<SelectContent className='bg-zinc-800 border-zinc-700'>
+								{genres.map((genre) => (
+									<SelectItem key={genre} value={genre}>
+										{genre}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
 					</div>
 
-					<div className='flex items-center justify-between gap-4 rounded-lg border border-zinc-700 bg-zinc-900/90 p-4'>
-						<div>
-							<p className='text-sm font-semibold text-white'>Premium item</p>
-							<p className='text-xs text-zinc-500'>Mark this track as premium to make it available in the premium catalog.</p>
+					<div className='space-y-2'>
+						<div className='flex items-center justify-between gap-4 rounded-lg border border-zinc-700 bg-zinc-900/90 p-4'>
+							<div>
+								<p className='text-sm font-semibold text-white'>Premium item</p>
+								<p className='text-xs text-zinc-500'>Mark this track as premium to make it available in the premium catalog.</p>
+							</div>
+							<Switch
+								checked={newSong.isPremium}
+								onCheckedChange={(checked) => setNewSong({ ...newSong, isPremium: checked })}
+							/>
 						</div>
-						<Switch
-							checked={newSong.isPremium}
-							onCheckedChange={(checked) => setNewSong({ ...newSong, isPremium: checked })}
-						/>
-					</div>
 
-					{newSong.isPremium && (
-						<div className='space-y-2'>
-							<label className='text-sm font-medium'>Premium Tier</label>
-							<Select
-								value={newSong.premiumTier}
-								onValueChange={(value) => setNewSong({ ...newSong, premiumTier: value })}
-							>
-								<SelectTrigger className='bg-zinc-800 border-zinc-700'>
-									<SelectValue placeholder='Select tier' />
-								</SelectTrigger>
-								<SelectContent className='bg-zinc-800 border-zinc-700'>
-									<SelectItem value='Featured'>Featured</SelectItem>
-									<SelectItem value='Exclusive'>Exclusive</SelectItem>
-									<SelectItem value='Top Premium'>Top Premium</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-					)}
+						{newSong.isPremium && (
+							<div className='space-y-2'>
+								<label className='text-sm font-medium'>Premium Tier</label>
+								<Select
+									value={newSong.premiumTier}
+									onValueChange={(value) => setNewSong({ ...newSong, premiumTier: value })}
+								>
+									<SelectTrigger className='bg-zinc-800 border-zinc-700'>
+										<SelectValue placeholder='Select tier' />
+									</SelectTrigger>
+									<SelectContent className='bg-zinc-800 border-zinc-700'>
+										<SelectItem value='Featured'>Featured</SelectItem>
+										<SelectItem value='Exclusive'>Exclusive</SelectItem>
+										<SelectItem value='Top Premium'>Top Premium</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+						)}
+					</div>
 
 					<div className='space-y-2'>
 						<label className='text-sm font-medium'>Album (Optional)</label>
@@ -254,7 +272,6 @@ const AddSongDialog = () => {
 						</Select>
 					</div>
 				</div>
-
 				<DialogFooter>
 					<Button variant='outline' onClick={() => setSongDialogOpen(false)} disabled={isLoading}>
 						Cancel
