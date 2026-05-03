@@ -24,7 +24,6 @@ import {
 
 // React hooks for lifecycle and refs
 import { useEffect, useRef, useState } from "react";
-import { useUser } from "@clerk/clerk-react";
 
 // dialog components for displaying the queue
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -39,10 +38,6 @@ const formatTime = (seconds: number) => {
 };
 
 export const PlaybackControls = () => {
-	// auth status for guarding playback
-	const { user, isLoaded } = useUser();
-	const isLoggedIn = isLoaded && !!user;
-
 	// destructure needed values and actions from player store
 	const { currentSong, isPlaying, togglePlay, playNext, playPrevious, shuffle, toggleShuffle, repeat, cycleRepeat, queue, showQueue, toggleQueue } = usePlayerStore();
 
@@ -106,13 +101,6 @@ export const PlaybackControls = () => {
 			audioRef.current.volume = isMuted ? 0 : volume / 100;
 		}
 	}, [volume, isMuted]);
-
-	// helper: respond to slider change by seeking audio
-	const handleSeek = (value: number[]) => {
-		if (audioRef.current) {
-			audioRef.current.currentTime = value[0];
-		}
-	};
 
 	// user clicked the shuffle icon; update store and toast accordingly
 	const handleShuffleClick = () => {

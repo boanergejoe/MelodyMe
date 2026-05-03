@@ -30,12 +30,10 @@ const SearchPage = () => {
                     axiosInstance.get(`/albums`)
                 ]);
 
-                const filteredAlbums = genre
-                    ? albumsRes.data.filter((album: Album) => album.genre?.toLowerCase() === genre.toLowerCase())
-                    : albumsRes.data.filter((album: Album) =>
-                        album.title.toLowerCase().includes(query.toLowerCase()) ||
-                        album.artist.toLowerCase().includes(query.toLowerCase())
-                    );
+                const filteredAlbums = albumsRes.data.filter((album: Album) =>
+                    album.title.toLowerCase().includes(query.toLowerCase()) ||
+                    album.artist.toLowerCase().includes(query.toLowerCase())
+                );
 
                 setSongs(songsRes.data);
                 setAlbums(filteredAlbums);
